@@ -2,7 +2,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
-// import { Club } from "../models/club.model.js";
+import { Club } from "../models/club.model.js";
 import jwt from "jsonwebtoken"; 
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
@@ -330,6 +330,39 @@ const getMyClubs = asyncHandler(async (req, res) => {
         );
 });
 
+// Get all users (faculty only)
+const getAllUsers = asyncHandler(async (req, res) => {
+    // Check if user is faculty
+    if (req.user.role !== "faculty") {
+        throw new ApiError(403, "Only faculty can view all users");
+    }
+
+    const { role, department, page = 1, limit = 100 } = req.query;
+
+    const filter = {};
+    if (role) filter.role = role;
+    if (department) filter.department = department;
+
+    const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        select: 'name email role department createdAt',
+        sort: { name: 1 }
+    };
+
+    const users = await User.paginate(filter, options);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                users,
+                "Users retrieved successfully"
+            )
+        );
+});
+
 // Export all controllers
 export {
     registerUser,
@@ -338,6 +371,7 @@ export {
     getCurrentUser,
     joinClub,
     leaveClub,
-    getMyClubs
+    getMyClubs,
+    getAllUsers
 }
 

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import mongoosePaginate from "mongoose-paginate-v2";
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -102,5 +103,8 @@ userSchema.methods.toJSON = function() {
     delete user.passwordHash;
     return user;
 }; 
+
+// Add pagination plugin
+userSchema.plugin(mongoosePaginate);
 
 export const User = mongoose.model("User", userSchema);

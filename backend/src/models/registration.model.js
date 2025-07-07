@@ -39,8 +39,4 @@ registrationSchema.index({ status: 1 });
 // Add pagination plugin
 registrationSchema.plugin(mongoosePaginate);
 
-<<<<<<< HEAD
 export const Registration = mongoose.model("Registration", registrationSchema);
-=======
-export const Registration = mongoose.model("Registration", registrationSchema);
->>>>>>> bfc9cd6 (Updated frontend code)

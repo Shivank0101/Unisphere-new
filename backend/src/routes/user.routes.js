@@ -6,7 +6,8 @@ import {
     getCurrentUser,
     joinClub,
     leaveClub,
-    getMyClubs
+    getMyClubs,
+    getAllUsers
 } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -19,6 +20,9 @@ router.route("/login").post(loginUser);  //! Done
 // Protected routes (authentication required)
 router.route("/logout").post(verifyJWT, logoutUser);  //! Done
 router.route("/current-user").get(verifyJWT, getCurrentUser);  //! Done
+
+// Faculty routes
+router.route("/all").get(verifyJWT, getAllUsers);  // Faculty: Get all users
 
 // Student routes for club management
 router.route("/clubs/join/:clubId").post(verifyJWT, joinClub);  // Student: Join club

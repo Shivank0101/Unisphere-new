@@ -45,8 +45,7 @@ attendanceSchema.index({ status: 1 });
 // Add pagination plugin
 attendanceSchema.plugin(mongoosePaginate);
 
-<<<<<<< HEAD
+
+
+
 export const Attendance = mongoose.model("Attendance", attendanceSchema);
-=======
-export const Attendance = mongoose.model("Attendance", attendanceSchema);
->>>>>>> bfc9cd6 (Updated frontend code)

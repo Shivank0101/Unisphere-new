@@ -128,8 +128,7 @@ export const updateEvent = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-<<<<<<< HEAD
-=======
+
 // the end
 
 
@@ -227,8 +226,6 @@ export const sendReminder = async (req, res) => {
   }
 };
 
->>>>>>> bfc9cd6 (Updated frontend code)
-
 
 // this is changed end
 
@@ -312,15 +309,35 @@ export const getEventsByOrganizer = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
 // changed  part start
 // Unregister from event
 export const unregisterFromEvent = async (req, res) => {
   const { userId } = req.body;
   const eventId = req.params.eventId;
->>>>>>> bfc9cd6 (Updated frontend code)
 
+  try {
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Check if user is registered
+    if (!event.registrations.includes(userId)) {
+      return res.status(400).json({ message: 'User is not registered for this event' });
+    }
+
+    // Remove user from registrations
+    event.registrations = event.registrations.filter(id => id.toString() !== userId);
+    await event.save();
+
+    res.status(200).json({ 
+      message: 'Successfully unregistered from event',
+      event 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 // changed part  end
 

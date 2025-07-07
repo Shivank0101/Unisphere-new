@@ -165,30 +165,16 @@ const getMyRegistrations = asyncHandler(async (req, res) => {
         sort: { registrationDate: -1 }
     };
 
-<<<<<<< HEAD
-    const registrations = await Registration.paginate(filter, options);
-
-    return res.status(200).json(
-        new ApiResponse(200, registrations, "Registrations retrieved successfully")
-    );
-=======
-    // const registrations = await Registration.paginate(filter, options);
-
-    // return res.status(200).json(
-    //     new ApiResponse(200, registrations, "Registrations retrieved successfully")
-    // );
 
     try {
-    const registrations = await Registration.paginate(filter, options);
-    return res.status(200).json(
-      new ApiResponse(200, registrations, "Registrations retrieved successfully")
-    );
-  } catch (error) {
-    console.error("🔥 getMyRegistrations error:", error);
-    throw new ApiError(500, "Internal Server Error in getMyRegistrations");
-  }
-
->>>>>>> bfc9cd6 (Updated frontend code)
+        const registrations = await Registration.paginate(filter, options);
+        return res.status(200).json(
+            new ApiResponse(200, registrations, "Registrations retrieved successfully")
+        );
+    } catch (error) {
+        console.error("🔥 getMyRegistrations error:", error);
+        throw new ApiError(500, "Internal Server Error in getMyRegistrations");
+    }
 });
 
 // Get registrations for a specific event (Faculty only)
@@ -261,8 +247,4 @@ export {
     getMyRegistrations, // student dashboard mai, (shows all the events the student has registered for)
     getEventRegistrations, // faculty dashboard mai, (shows all the registrations for a specific event)
     checkRegistrationStatus
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> bfc9cd6 (Updated frontend code)
