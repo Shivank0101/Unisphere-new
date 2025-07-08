@@ -19,7 +19,7 @@ const StudentDashboard = () => {
         console.log('🔄 Fetching dashboard data...');
         
         // Fetch clubs
-        const clubsRes = await axios.get("http://localhost:5001/api/v1/clubs", {
+        const clubsRes = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/clubs", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -29,7 +29,7 @@ const StudentDashboard = () => {
 
         // Fetch user's registrations
         console.log('🔄 Fetching user registrations...');
-        const registrationsRes = await axios.get("http://localhost:5001/api/v1/registrations/my-registrations", {
+        const registrationsRes = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/my-registrations", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,7 +58,7 @@ const StudentDashboard = () => {
     // Refresh registration data to show updated attendance status
     try {
       const token = localStorage.getItem("token");
-      const registrationsRes = await axios.get("http://localhost:5001/api/v1/registrations/my-registrations", {
+      const registrationsRes = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/my-registrations", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
