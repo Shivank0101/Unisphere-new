@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import QrScanner from 'qr-scanner';
 import axios from 'axios';
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const QRScanner = ({ onClose, onSuccess }) => {
   const [scanning, setScanning] = useState(true);
   const [error, setError] = useState('');
@@ -12,6 +16,13 @@ const QRScanner = ({ onClose, onSuccess }) => {
   useEffect(() => {
     const initializeScanner = async () => {
       try {
+        // Check if we have camera permission first
+        const hasCamera = await QrScanner.hasCamera();
+        if (!hasCamera) {
+          setError('No camera found. Please make sure your device has a camera.');
+          return;
+        }
+
         if (videoRef.current) {
           qrScannerRef.current = new QrScanner(
             videoRef.current,
@@ -19,7 +30,10 @@ const QRScanner = ({ onClose, onSuccess }) => {
             {
               onDecodeError: err => {
                 // Ignore decode errors - they're normal when no QR code is visible
-                console.log('Decode error (normal):', err);
+                // Only log occasionally to reduce console spam
+                if (Math.random() < 0.01) { // Log only 1% of the time
+                  console.log('Decode error (normal):', err);
+                }
               },
               highlightScanRegion: true,
               highlightCodeOutline: true,
@@ -32,7 +46,19 @@ const QRScanner = ({ onClose, onSuccess }) => {
         }
       } catch (err) {
         console.error('Scanner initialization error:', err);
-        setError('Failed to access camera. Please check permissions and try again.');
+        
+        // Provide specific error messages for different scenarios
+        if (err.name === 'NotAllowedError') {
+          setError('Camera access denied. Please allow camera permissions and try again.');
+        } else if (err.name === 'NotFoundError') {
+          setError('No camera found. Please make sure your device has a camera.');
+        } else if (err.name === 'NotSupportedError') {
+          setError('Camera not supported. Please use a different browser or device.');
+        } else if (err.message && err.message.includes('https')) {
+          setError('Camera access requires HTTPS. Please use a secure connection or run the app with HTTPS.');
+        } else {
+          setError('Failed to access camera. Please check permissions and try again.');
+        }
       }
     };
 
@@ -66,9 +92,9 @@ const QRScanner = ({ onClose, onSuccess }) => {
         
         console.log('📤 Sending QR data:', data); // Debug log
         
-        // Send the QR data to mark attendance - FIXED URL
+        // Send the QR data to mark attendance
         const response = await axios.post(
-          "http://unisphere-backend-o6o2.onrender.com/api/v1/attendance/qr/mark", // Fixed: was /mark-qr
+          `${BASE_URL}/api/v1/attendance/qr/mark`,
           { qrData: data },
           {
             headers: {
@@ -135,9 +161,15 @@ const QRScanner = ({ onClose, onSuccess }) => {
               />
               <div className="absolute inset-0 border-2 border-blue-500 rounded-lg pointer-events-none opacity-50"></div>
             </div>
-            <p className="text-gray-300 text-sm text-center">
+            <p className="text-gray-300 text-sm text-center mb-2">
               Position the QR code within the frame to mark your attendance
             </p>
+            <div className="text-xs text-gray-400 text-center">
+              <p>💡 Tips:</p>
+              <p>• Hold your device steady</p>
+              <p>• Ensure good lighting</p>
+              <p>• If camera doesn't work, try using HTTPS</p>
+            </div>
           </>
         )}
 

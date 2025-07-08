@@ -5,9 +5,9 @@ import { ToastContainer } from "react-toastify";
 
 // Pages
 import Home from './pages/Home';
-
 import EditEvent from './pages/EditEvents';
 import EventDetails from './pages/EventDetails';
+import EventAttendanceManagement from './pages/EventAttendanceManagement';
 import Navbar from './pages/Navbar';
 import StudentDashboard from './pages/StudentDashboard';
 import FacultyDashboard from './pages/FacultyDashboard';
@@ -51,9 +51,17 @@ function App() {
             </FacultyRoute>
           } />
 
+          {/* Faculty-only Route for Event Attendance Management */}
+          <Route path="/faculty/event/:eventId/attendance" element={
+            <FacultyRoute>
+              <EventAttendanceManagement />
+            </FacultyRoute>
+          } />
+
           {/* Dashboards */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+          <Route path="/faculty" element={<FacultyDashboard />} />
 
           <Route path="/studentdashboard/clubdetails/:id" element={<ClubDetails />} />
           <Route path="/faculty/club/:clubId" element={<FacultyClubDetails />} />

@@ -11,6 +11,16 @@ const clubSchema = new mongoose.Schema({
     description: {
         type: String,
     },
+    clubType: {
+        type: String,
+        required: true,
+        enum: ['cultural', 'dance', 'singing', 'robotics', 'tech', 'sports'],
+        lowercase: true
+    },
+    imageUrl: {
+        type: String,
+        default: ""
+    },
     members: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

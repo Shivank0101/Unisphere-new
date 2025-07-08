@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const EditEvent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,7 +17,7 @@ const EditEvent = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    axios.get(`https://unisphere-backend-o6o2.onrender.com/api/events/${id}`)
+    axios.get(`${BASE_URL}/api/events/${id}`)
       .then((res) => {
         const { name, date, location, description } = res.data;
         setName(name);
@@ -26,7 +30,7 @@ const EditEvent = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`https://unisphere-backend-o6o2.onrender.com/api/events/${id}`, {
+    axios.put(`${BASE_URL}/api/events/${id}`, {
       name,
       date,
       location,

@@ -12,6 +12,10 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 
+// Base URL - Change this to switch between development and production
+// const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 // Register Chart.js components
 ChartJS.register(
   CategoryScale,
@@ -35,7 +39,7 @@ const AttendanceStats = () => {
   const fetchAttendanceData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/attendance/my-attendance", {
+      const response = await axios.get(`${BASE_URL}/api/v1/attendance/my-attendance`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

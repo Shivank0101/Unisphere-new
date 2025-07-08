@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // ✅ import context
 
+// Base URL - Change this to switch between development and production
+// const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +27,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        'https://unisphere-backend-o6o2.onrender.com/api/v1/users/login',
+        `${BASE_URL}/api/v1/users/login`,
         { email, password },
         { withCredentials: true }
       );

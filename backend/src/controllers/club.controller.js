@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Club } from "../models/club.model.js";
 import { User } from "../models/user.model.js";
 import { Event } from "../models/event.model.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 
 // 1. View all clubs
@@ -46,6 +47,8 @@ const getAllClubs = asyncHandler(async (req, res) => {
             $project: {
                 name: 1,
                 description: 1,
+                clubType: 1,
+                imageUrl: 1,
                 memberCount: 1,
                 eventCount: 1,
                 "coordinator.name": 1,
@@ -259,8 +262,12 @@ const leaveClub = asyncHandler(async (req, res) => {
 
 // 7. Create clubs (Faculty only)
 const createClub = asyncHandler(async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, clubType, imageUrl } = req.body;
     const currentUser = req.user;
+
+    // Debug: Log the received data
+    console.log("Received club data:", req.body);
+    console.log("Uploaded file:", req.file);
 
     // Authorization: Only faculty can create clubs
     if (currentUser.role !== "faculty") {
@@ -272,16 +279,66 @@ const createClub = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Club name is required");
     }
 
+    if (!clubType || clubType.trim() === "") {
+        throw new ApiError(400, "Club type is required");
+    }
+
+    // Validate club type
+    const validClubTypes = ['cultural', 'dance', 'singing', 'robotics', 'tech', 'sports'];
+    if (!validClubTypes.includes(clubType.toLowerCase())) {
+        throw new ApiError(400, "Invalid club type. Valid types: cultural, dance, singing, robotics, tech, sports");
+    }
+
     // Check if club name already exists
     const existingClub = await Club.findOne({ name });
     if (existingClub) {
         throw new ApiError(409, "Club with this name already exists");
     }
 
+    // Check club type limits
+    const clubTypeLimits = {
+        'cultural': 1,
+        'dance': 1,
+        'singing': 1,
+        'robotics': 1,
+        'tech': 2,
+        'sports': 1
+    };
+
+    const existingClubsOfType = await Club.countDocuments({ 
+        clubType: clubType.toLowerCase(),
+        isActive: true 
+    });
+
+    const limit = clubTypeLimits[clubType.toLowerCase()];
+    if (existingClubsOfType >= limit) {
+        const typeDisplayName = clubType.charAt(0).toUpperCase() + clubType.slice(1);
+        throw new ApiError(409, `${typeDisplayName} club already exists. Only ${limit} ${clubType} club${limit > 1 ? 's' : ''} allowed.`);
+    }
+
+    // Handle image upload
+    let finalImageUrl = imageUrl; // Use provided URL as default
+    
+    if (req.file) {
+        // If a file was uploaded, upload it to Cloudinary
+        console.log("Uploading club image to Cloudinary:", req.file.path);
+        const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+        
+        if (cloudinaryResponse) {
+            finalImageUrl = cloudinaryResponse.secure_url;
+            console.log("Club image uploaded successfully:", finalImageUrl);
+        } else {
+            console.log("Failed to upload club image to Cloudinary");
+            // Don't fail the entire request, just continue without image
+        }
+    }
+
     // Create club with current faculty user as coordinator
     const club = await Club.create({
         name,
         description: description || "",
+        clubType: clubType.toLowerCase(),
+        imageUrl: finalImageUrl,
         facultyCoordinator: currentUser._id,
         members: [currentUser._id], // Add coordinator as first member
         events: []   // Start with empty events array
@@ -304,8 +361,12 @@ const createClub = asyncHandler(async (req, res) => {
 // 8. Update own clubs (as coordinator) - Faculty only
 const updateClub = asyncHandler(async (req, res) => {
     const { clubId } = req.params;
-    const updates = req.body;
+    const { name, description, imageUrl } = req.body;
     const currentUser = req.user; // From auth middleware
+
+    // Debug: Log the received data
+    console.log("Updating club with data:", req.body);
+    console.log("Uploaded file:", req.file);
 
     if (!mongoose.Types.ObjectId.isValid(clubId)) {
         throw new ApiError(400, "Invalid club ID");
@@ -327,25 +388,39 @@ const updateClub = asyncHandler(async (req, res) => {
     }
 
     // If updating name, check for uniqueness
-    if (updates.name && updates.name !== club.name) {
-        const existingClub = await Club.findOne({ name: updates.name });
+    if (name && name !== club.name) {
+        const existingClub = await Club.findOne({ name });
         if (existingClub) {
             throw new ApiError(409, "Club with this name already exists");
         }
     }
 
-    // Prevent updating facultyCoordinator through this endpoint
-    if (updates.facultyCoordinator) {
-        throw new ApiError(400, "Faculty coordinator cannot be changed through this endpoint");
+    // Prepare update data
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+
+    // Handle image upload or URL
+    if (req.file) {
+        // If a file was uploaded, upload it to Cloudinary
+        console.log("Uploading club image to Cloudinary:", req.file.path);
+        const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+        
+        if (cloudinaryResponse) {
+            updateData.imageUrl = cloudinaryResponse.secure_url;
+            console.log("Club image uploaded successfully:", updateData.imageUrl);
+        } else {
+            console.log("Failed to upload club image to Cloudinary");
+        }
+    } else if (imageUrl !== undefined) {
+        // If URL was provided, use it
+        updateData.imageUrl = imageUrl;
     }
 
     // Update club
     const updatedClub = await Club.findByIdAndUpdate(
         clubId,
-        { 
-            name: updates.name,
-            description: updates.description
-        },
+        updateData,
         { new: true, runValidators: true }
     ).populate('facultyCoordinator', 'name email department');
 

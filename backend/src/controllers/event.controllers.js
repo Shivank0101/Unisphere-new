@@ -2,6 +2,7 @@ import { Event } from '../models/event.model.js';
 import { Club } from '../models/club.model.js';
 import { User } from '../models/user.model.js';
 import { Registration } from '../models/registration.model.js';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 export const getEvents = async (req, res) => {
   try {
@@ -34,6 +35,10 @@ export const getEventById = async (req, res) => {
 export const createEvent = async (req, res) => {
   const { title, description, startDate, endDate, location, club, maxCapacity, eventType, imageUrl, tags } = req.body;
   
+  // Debug: Log the received data
+  console.log("Received event data:", req.body);
+  console.log("Uploaded file:", req.file);
+  
   // Get organizer from authenticated user
   const organizer = req.user._id;
   
@@ -43,6 +48,7 @@ export const createEvent = async (req, res) => {
 
   // Validation
   if (!title || !description || !startDate || !endDate || !location || !club) {
+    console.log("Missing required fields:", { title: !!title, description: !!description, startDate: !!startDate, endDate: !!endDate, location: !!location, club: !!club });
     return res.status(400).json({ error: 'All required fields must be provided' });
   }
 
@@ -66,6 +72,23 @@ export const createEvent = async (req, res) => {
       return res.status(403).json({ error: 'Only the faculty coordinator can create events for this club' });
     }
 
+    // Handle image upload
+    let finalImageUrl = imageUrl; // Use provided URL as default
+    
+    if (req.file) {
+      // If a file was uploaded, upload it to Cloudinary
+      console.log("Uploading file to Cloudinary:", req.file.path);
+      const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+      
+      if (cloudinaryResponse) {
+        finalImageUrl = cloudinaryResponse.secure_url;
+        console.log("Image uploaded successfully:", finalImageUrl);
+      } else {
+        console.log("Failed to upload image to Cloudinary");
+        // Don't fail the entire request, just continue without image
+      }
+    }
+
     const event = new Event({ 
       title, 
       description, 
@@ -76,7 +99,7 @@ export const createEvent = async (req, res) => {
       organizer, // Now set from authenticated user
       maxCapacity, 
       eventType, 
-      imageUrl, 
+      imageUrl: finalImageUrl, 
       tags 
     });
     await event.save();
@@ -91,6 +114,11 @@ export const createEvent = async (req, res) => {
     
     res.status(201).json(populatedEvent);
   } catch (err) {
+    console.error("Error creating event:", err);
+    if (err.name === 'ValidationError') {
+      const validationErrors = Object.values(err.errors).map(error => error.message);
+      return res.status(400).json({ error: `Validation failed: ${validationErrors.join(', ')}` });
+    }
     res.status(500).json({ error: err.message });
   }
 };
@@ -101,6 +129,9 @@ export const updateEvent = async (req, res) => {
   try {
     const { title, description, startDate, endDate, location, maxCapacity, eventType, imageUrl, tags } = req.body;
     
+    console.log("Updating event with data:", req.body);
+    console.log("Uploaded file:", req.file);
+    
     const updateData = {};
     if (title) updateData.title = title;
     if (description) updateData.description = description;
@@ -109,8 +140,24 @@ export const updateEvent = async (req, res) => {
     if (location) updateData.location = location;
     if (maxCapacity !== undefined) updateData.maxCapacity = maxCapacity;
     if (eventType) updateData.eventType = eventType;
-    if (imageUrl) updateData.imageUrl = imageUrl;
     if (tags) updateData.tags = tags;
+
+    // Handle image upload or URL
+    if (req.file) {
+      // If a file was uploaded, upload it to Cloudinary
+      console.log("Uploading file to Cloudinary:", req.file.path);
+      const cloudinaryResponse = await uploadOnCloudinary(req.file.path);
+      
+      if (cloudinaryResponse) {
+        updateData.imageUrl = cloudinaryResponse.secure_url;
+        console.log("Image uploaded successfully:", updateData.imageUrl);
+      } else {
+        console.log("Failed to upload image to Cloudinary");
+      }
+    } else if (imageUrl) {
+      // If URL was provided, use it
+      updateData.imageUrl = imageUrl;
+    }
 
     const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
@@ -125,6 +172,7 @@ export const updateEvent = async (req, res) => {
 
     res.status(200).json(updatedEvent);
   } catch (err) {
+    console.error("Error updating event:", err);
     res.status(500).json({ error: err.message });
   }
 };

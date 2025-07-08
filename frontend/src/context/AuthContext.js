@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -26,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post(
-        'https://unisphere-backend-o6o2.onrender.com/api/v1/users/logout',
+        `${BASE_URL}/api/v1/users/logout`,
         {},
         {
           withCredentials: true,

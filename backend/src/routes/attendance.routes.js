@@ -2,9 +2,12 @@ import { Router } from "express";
 import {
     getOwnAttendance,
     markAttendanceForOthers,
+    editStudentAttendance,
+    getClubEventAttendance,
     getOthersAttendance,
     getEventAttendance,
     getAllAttendanceReports,
+    cleanupOrphanedAttendance,
     generateEventQRCode,
     markAttendanceByQR,
     getAttendanceSummary
@@ -21,6 +24,9 @@ router.route("/my-attendance").get(getOwnAttendance); // View own attendance
 
 // Faculty routes
 router.route("/mark-others/:eventId").post(markAttendanceForOthers); // Mark attendance for others
+router.route("/mark-for-others").post(markAttendanceForOthers); // Alternative endpoint for single record
+router.route("/edit/:eventId/:userId").put(editStudentAttendance); // Edit single student attendance (Club coordinator only)
+router.route("/club-event/:eventId").get(getClubEventAttendance); // View event attendance (Club coordinator only)
 router.route("/user/:userId").get(getOthersAttendance); // View others' attendance
 router.route("/event/:eventId").get(getEventAttendance); // View event attendance
 router.route("/reports").get(getAllAttendanceReports); // View all attendance reports
@@ -31,5 +37,8 @@ router.route("/qr/mark").post(markAttendanceByQR); // Mark attendance using QR c
 
 // Summary routes
 router.route("/summary/:userId?").get(getAttendanceSummary); // Get attendance summary
+
+// Cleanup routes
+router.route("/cleanup").post(cleanupOrphanedAttendance); // Cleanup orphaned attendance records (faculty only)
 
 export default router;

@@ -95,6 +95,54 @@ userSchema.methods.generateRefreshToken = function(){
     )
 }
 
+// Pre-remove middleware to clean up related data when user is deleted
+userSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+    try {
+        const userId = this._id;
+        
+        // Import models (using dynamic import to avoid circular dependencies)
+        const { Attendance } = await import("./attendance.model.js");
+        const { Registration } = await import("./registration.model.js");
+        
+        // Delete all attendance records for this user
+        await Attendance.deleteMany({ user: userId });
+        console.log(`🧹 Deleted attendance records for user: ${userId}`);
+        
+        // Delete all registration records for this user
+        await Registration.deleteMany({ user: userId });
+        console.log(`🧹 Deleted registration records for user: ${userId}`);
+        
+        next();
+    } catch (error) {
+        console.error('❌ Error cleaning up user data:', error);
+        next(error);
+    }
+});
+
+// Pre-remove middleware for findOneAndDelete
+userSchema.pre('findOneAndDelete', async function(next) {
+    try {
+        const user = await this.model.findOne(this.getQuery());
+        if (user) {
+            // Import models (using dynamic import to avoid circular dependencies)
+            const { Attendance } = await import("./attendance.model.js");
+            const { Registration } = await import("./registration.model.js");
+            
+            // Delete all attendance records for this user
+            await Attendance.deleteMany({ user: user._id });
+            console.log(`🧹 Deleted attendance records for user: ${user._id}`);
+            
+            // Delete all registration records for this user
+            await Registration.deleteMany({ user: user._id });
+            console.log(`🧹 Deleted registration records for user: ${user._id}`);
+        }
+        next();
+    } catch (error) {
+        console.error('❌ Error cleaning up user data:', error);
+        next(error);
+    }
+});
+
 // Method to return user object without sensitive information (password)
 // Automatically called when user object is converted to JSON
 // Ensures password hash is never sent in API responses

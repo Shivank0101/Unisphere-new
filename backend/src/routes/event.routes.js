@@ -13,6 +13,7 @@ import {
   deactivateEvent
 } from '../controllers/event.controllers.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { upload } from '../middlewares/multer.middleware.js';
 
 // Public routes
 router.get('/', getEvents);
@@ -23,8 +24,8 @@ router.get('/organizer/:organizerId', getEventsByOrganizer);
 router.get('/:id', getEventById);
 
 // Protected routes (require authentication)
-router.post('/', verifyJWT, createEvent);
-router.put('/:id', verifyJWT, updateEvent);
+router.post('/', verifyJWT, upload.single('image'), createEvent);
+router.put('/:id', verifyJWT, upload.single('image'), updateEvent);
 router.put('/deactivate/:id', verifyJWT, deactivateEvent);
 
 router.delete('/:id', verifyJWT, deleteEvent);

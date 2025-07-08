@@ -5,6 +5,10 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FacultyAttendanceReports from "../components/FacultyAttendanceReports";
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const FacultyDashboard = () => {
   const [clubs, setClubs] = useState([]);
   const [showAttendanceReports, setShowAttendanceReports] = useState(false);
@@ -17,7 +21,7 @@ const FacultyDashboard = () => {
   const fetchClubs = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/clubs", {
+      const res = await axios.get(`${BASE_URL}/api/v1/clubs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -33,7 +37,7 @@ const FacultyDashboard = () => {
   const handleDelete = async (clubId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${clubId}`, {
+      await axios.delete(`${BASE_URL}/api/v1/clubs/${clubId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -96,24 +100,40 @@ const FacultyDashboard = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {clubs.map((club) => (
-                  <div key={club._id} className="bg-gray-800 p-4 rounded shadow">
-                    <h3 className="text-xl font-bold">{club.name}</h3>
-                    <p className="text-sm mb-2">{club.description}</p>
-                    <p>👥 Members: {club.memberCount}</p>
-                    {/* <p>🎉 Events: {club.eventCount}</p> */}
-                    <div className="mt-3 flex gap-2">
-                      <Link
-                        to={`/faculty/club/${club._id}`}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                      >
-                        Details
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(club._id)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                      >
-                        Delete
-                      </button>
+                  <div key={club._id} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                    {/* Club Image */}
+                    {club.imageUrl && (
+                      <div className="w-full h-48 bg-gray-700 overflow-hidden">
+                        <img
+                          src={club.imageUrl}
+                          alt={club.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="p-4">
+                      <h3 className="text-xl font-bold">{club.name}</h3>
+                      <p className="text-sm mb-2 text-gray-300">{club.description}</p>
+                      <p className="text-gray-400">👥 Members: {club.memberCount}</p>
+                      {/* <p>🎉 Events: {club.eventCount}</p> */}
+                      <div className="mt-3 flex gap-2">
+                        <Link
+                          to={`/faculty/club/${club._id}`}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                        >
+                          Details
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(club._id)}
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

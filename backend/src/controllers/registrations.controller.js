@@ -18,10 +18,20 @@ const transporter = nodemailer.createTransport({
 // Register for event
 const registerForEvent = asyncHandler(async (req, res) => {
     const userId = req.user._id;
-    const { eventId } = req.body;
+    const { eventId, participantType } = req.body;
 
     if (!eventId) {
         throw new ApiError(400, "Event ID is required");
+    }
+
+    if (!participantType) {
+        throw new ApiError(400, "Participant type is required");
+    }
+
+    // Validate participantType
+    const validParticipantTypes = ["club_member", "volunteer"];
+    if (!validParticipantTypes.includes(participantType)) {
+        throw new ApiError(400, "Invalid participant type. Must be 'club_member' or 'volunteer'");
     }
 
     // Check if event exists
@@ -56,6 +66,7 @@ const registerForEvent = asyncHandler(async (req, res) => {
     const registration = await Registration.create({ 
         user: userId, 
         event: eventId,
+        participantType: participantType,
         status: "registered"
     });
 

@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,7 +14,7 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://unisphere-backend-o6o2.onrender.com/api/auth/signup', { email, password });
+      await axios.post(`${BASE_URL}/api/auth/signup`, { email, password });
       alert('Signup successful! Please login.');
       navigate('/login');
     } catch (err) {

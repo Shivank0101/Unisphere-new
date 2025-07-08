@@ -15,6 +15,10 @@ import {
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { toast } from 'react-toastify';
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
@@ -31,6 +35,9 @@ ChartJS.register(
 const FacultyAttendanceReports = () => {
   const [attendanceData, setAttendanceData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editingRecord, setEditingRecord] = useState(null);
+  const [editStatus, setEditStatus] = useState('');
+  const [editNotes, setEditNotes] = useState('');
   const [filters, setFilters] = useState({
     eventId: '',
     userId: '',
@@ -69,13 +76,20 @@ const FacultyAttendanceReports = () => {
       });
 
       const response = await axios.get(
-        `http://unisphere-backend-o6o2.onrender.com/api/v1/attendance/reports?${params}`,
+        `${BASE_URL}/api/v1/attendance/reports?${params}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
 
       console.log('📊 Attendance Reports:', response.data);
+      console.log('📊 Attendance Records:', response.data.data.docs);
+      
+      // Log first record to debug structure
+      if (response.data.data.docs && response.data.data.docs.length > 0) {
+        console.log('📊 First record structure:', response.data.data.docs[0]);
+      }
+      
       setAttendanceData(response.data.data);
       calculateAnalytics(response.data.data.docs);
     } catch (error) {
@@ -91,13 +105,13 @@ const FacultyAttendanceReports = () => {
       const token = localStorage.getItem('token');
       
       // Fetch events for filter dropdown
-      const eventsRes = await axios.get('http://unisphere-backend-o6o2.onrender.com/api/v1/events', {
+      const eventsRes = await axios.get(`${BASE_URL}/api/v1/events`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(eventsRes.data?.data?.events || []);
 
       // Fetch users (students) for filter dropdown
-      const usersRes = await axios.get('http://unisphere-backend-o6o2.onrender.com/api/v1/users/all', {
+      const usersRes = await axios.get(`${BASE_URL}/api/v1/users/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const studentsList = usersRes.data?.data?.docs?.filter(user => user.role === 'student') || [];
@@ -178,6 +192,110 @@ const FacultyAttendanceReports = () => {
       page: 1,
       limit: 50
     });
+  };
+
+  const cleanupOrphanedRecords = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/attendance/cleanup`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      console.log('✅ Cleanup completed:', response.data);
+      toast.success(`✅ Cleaned up ${response.data.data.cleanedCount} orphaned records`);
+      
+      // Refresh the attendance data
+      fetchAttendanceReports();
+      
+    } catch (error) {
+      console.error('❌ Error cleaning up orphaned records:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to cleanup orphaned records';
+      toast.error(`❌ ${errorMessage}`);
+    }
+  };
+
+  const editAttendance = async (eventId, userId, newStatus, notes) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${BASE_URL}/api/v1/attendance/edit/${eventId}/${userId}`,
+        { 
+          status: newStatus,
+          notes: notes || `Updated to ${newStatus} by faculty coordinator`
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      console.log('✅ Attendance updated:', response.data);
+      toast.success(`✅ Attendance updated to ${newStatus} successfully!`);
+      
+      // Refresh the attendance data
+      fetchAttendanceReports();
+      
+      // Clear editing state
+      setEditingRecord(null);
+      setEditStatus('');
+      setEditNotes('');
+      
+    } catch (error) {
+      console.error('❌ Error updating attendance:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to update attendance';
+      toast.error(`❌ ${errorMessage}`);
+    }
+  };
+
+  const handleEditClick = (record) => {
+    // Check if the faculty member can edit this record
+    if (!record.canEdit) {
+      toast.error('You can only edit attendance for events from your clubs');
+      return;
+    }
+    
+    setEditingRecord(record._id);
+    setEditStatus(record.status);
+    setEditNotes(record.notes || '');
+  };
+
+  const handleSaveEdit = (record) => {
+    if (!editStatus) {
+      toast.error('Please select a status');
+      return;
+    }
+    
+    // Debug the record structure
+    console.log('Record data:', record);
+    console.log('Record event:', record?.event);
+    console.log('Record user:', record?.user);
+    
+    // Add null checking to prevent errors
+    if (!record) {
+      toast.error('Invalid record data. Please refresh the page and try again.');
+      return;
+    }
+    
+    // Check if event exists and has an ID
+    const eventId = record.event?._id || record.event;
+    const userId = record.user?._id || record.user;
+    
+    if (!eventId || !userId) {
+      toast.error('Missing event or user ID. Please refresh the page and try again.');
+      console.error('Missing IDs:', { eventId, userId, record });
+      return;
+    }
+    
+    editAttendance(eventId, userId, editStatus, editNotes);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRecord(null);
+    setEditStatus('');
+    setEditNotes('');
   };
 
   // Chart configurations
@@ -264,12 +382,21 @@ const FacultyAttendanceReports = () => {
     <div className="p-6 text-white max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">📊 Attendance Reports & Analytics</h1>
-        <button
-          onClick={clearFilters}
-          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
-        >
-          Clear Filters
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={cleanupOrphanedRecords}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+            title="Remove attendance records for deleted users"
+          >
+            🧹 Cleanup Orphaned Records
+          </button>
+          <button
+            onClick={clearFilters}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded"
+          >
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       {/* Filters Section */}
@@ -403,6 +530,9 @@ const FacultyAttendanceReports = () => {
                   Event
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Club
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -411,10 +541,14 @@ const FacultyAttendanceReports = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Marked By
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {attendanceData?.docs?.map((record) => (
+              {attendanceData?.docs?.filter(record => record && record._id && record.user && record.event)?.map((record) => {
+                return (
                 <tr key={record._id} className="hover:bg-gray-700">
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div>
@@ -432,18 +566,60 @@ const FacultyAttendanceReports = () => {
                         {record.event?.title || 'Unknown Event'}
                       </div>
                       <div className="text-sm text-gray-400">
-                        {record.event?.club?.name || ''}
+                        {new Date(record.event?.startDate).toLocaleDateString() || 'No date'}
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      record.status === 'present' ? 'bg-green-100 text-green-800' :
-                      record.status === 'absent' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {record.status}
-                    </span>
+                    <div>
+                      <div className="text-sm font-medium text-white">
+                        {record.event?.club?.name || 'Unknown Club'}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {record.canEdit ? (
+                          <span className="text-green-400">✓ Can Edit</span>
+                        ) : (
+                          <span className="text-gray-500">View Only</span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {editingRecord === record._id ? (
+                      <div className="flex flex-col gap-2">
+                        <select
+                          value={editStatus}
+                          onChange={(e) => setEditStatus(e.target.value)}
+                          className="px-2 py-1 text-xs bg-gray-600 text-white rounded"
+                        >
+                          <option value="present">Present</option>
+                          <option value="absent">Absent</option>
+                          <option value="late">Late</option>
+                        </select>
+                        <input
+                          type="text"
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          placeholder="Notes (optional)"
+                          className="px-2 py-1 text-xs bg-gray-600 text-white rounded"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          record.status === 'present' ? 'bg-green-100 text-green-800' :
+                          record.status === 'absent' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {record.status}
+                        </span>
+                        {record.notes && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            {record.notes}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                     {new Date(record.createdAt).toLocaleString()}
@@ -451,8 +627,42 @@ const FacultyAttendanceReports = () => {
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                     {record.markedBy?.name || 'System'}
                   </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm">
+                    {editingRecord === record._id ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleSaveEdit(record)}
+                          className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded text-xs"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        {record.canEdit ? (
+                          <button
+                            onClick={() => handleEditClick(record)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                          >
+                            ✏️ Edit
+                          </button>
+                        ) : (
+                          <span className="text-gray-500 text-xs">
+                            View Only
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

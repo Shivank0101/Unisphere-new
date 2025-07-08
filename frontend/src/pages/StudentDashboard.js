@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import QRScanner from '../components/QRScanner';
 import AttendanceStats from '../components/AttendanceStats';
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const StudentDashboard = () => {
   const [clubs, setClubs] = useState([]);
   const [registrations, setRegistrations] = useState([]);
@@ -18,8 +22,8 @@ const StudentDashboard = () => {
         const token = localStorage.getItem("token");
         console.log('🔄 Fetching dashboard data...');
         
-        // Fetch clubs
-        const clubsRes = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/clubs", {
+        // Fetch all clubs
+        const clubsRes = await axios.get(`${BASE_URL}/api/v1/clubs`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -29,7 +33,7 @@ const StudentDashboard = () => {
 
         // Fetch user's registrations
         console.log('🔄 Fetching user registrations...');
-        const registrationsRes = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/my-registrations", {
+        const registrationsRes = await axios.get(`${BASE_URL}/api/v1/registrations/my-registrations`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,7 +62,7 @@ const StudentDashboard = () => {
     // Refresh registration data to show updated attendance status
     try {
       const token = localStorage.getItem("token");
-      const registrationsRes = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/my-registrations", {
+      const registrationsRes = await axios.get(`${BASE_URL}/api/v1/registrations/my-registrations`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -82,9 +86,9 @@ const StudentDashboard = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold text-white mb-4">Student Dashboard</h1>
 
-      {/* 🟦 Clubs Section */}
+      {/* 🟦 All Clubs Section */}
       <section className="mb-8">
-        <h2 className="text-xl font-semibold text-white mb-3">All Clubs</h2>
+        <h2 className="text-xl font-semibold text-white mb-3">Discover Clubs</h2>
 
 
 
@@ -93,8 +97,22 @@ const StudentDashboard = () => {
   {clubs.map((club) => (
     <div
       key={club._id}
-      className="bg-gray-900 rounded-xl border border-gray-700 shadow-md hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+      className="bg-gray-900 rounded-xl border border-gray-700 shadow-md hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out overflow-hidden"
     >
+      {/* Club Image */}
+      {club.imageUrl && (
+        <div className="w-full h-48 bg-gray-700 overflow-hidden">
+          <img
+            src={club.imageUrl}
+            alt={club.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+      
       <div className="p-6">
         <h3 className="text-xl font-semibold text-white mb-2">{club.name}</h3>
 
@@ -171,6 +189,17 @@ const StudentDashboard = () => {
                         'bg-gray-600 text-white'
                       }`}>
                         {registration.status}
+                      </span>
+                    </p>
+                    <p><span className="font-medium text-gray-300">Participant Type:</span> 
+                      <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                        registration.participantType === 'club_member' ? 'bg-purple-600 text-white' :
+                        registration.participantType === 'volunteer' ? 'bg-orange-600 text-white' :
+                        'bg-gray-600 text-white'
+                      }`}>
+                        {registration.participantType === 'club_member' ? '👥 Club Member' : 
+                         registration.participantType === 'volunteer' ? '🙋‍♂️ Volunteer' : 
+                         registration.participantType || 'Not specified'}
                       </span>
                     </p>
                     {registration.event?.club?.name && (

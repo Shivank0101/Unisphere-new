@@ -6,6 +6,10 @@ import StudentEvents from '../components/StudentEvents';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 
 
 
@@ -22,7 +26,7 @@ const ClubDetails = () => {
     const fetchClubDetails = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${id}`, {
+        const res = await axios.get(`${BASE_URL}/api/v1/clubs/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -42,7 +46,7 @@ const ClubDetails = () => {
   const handleJoinClub = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${id}/join`, {}, {
+      await axios.post(`${BASE_URL}/api/v1/clubs/${id}/join`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +62,7 @@ const ClubDetails = () => {
   const handleLeaveClub = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${id}/leave`, {}, {
+      await axios.post(`${BASE_URL}/api/v1/clubs/${id}/leave`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -84,6 +88,20 @@ const ClubDetails = () => {
       <h1 className="text-3xl font-bold mb-4 border-b border-gray-700 pb-2">
         {club.name}
       </h1>
+
+      {/* Club Image */}
+      {club.imageUrl && (
+        <div className="w-full h-64 bg-gray-800 rounded-lg overflow-hidden mb-6">
+          <img
+            src={club.imageUrl}
+            alt={club.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
 
       <p className="text-gray-300 mb-6">{club.description}</p>
 

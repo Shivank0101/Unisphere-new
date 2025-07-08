@@ -21,6 +21,11 @@ const registrationSchema = new mongoose.Schema({
         enum: ["registered", "cancelled", "attended", "no-show"],
         default: "registered",
     },
+    participantType: {
+        type: String,
+        enum: ["club_member", "volunteer"],
+        required: true,
+    },
     notes: {
         type: String,
     }

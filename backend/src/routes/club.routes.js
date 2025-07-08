@@ -11,6 +11,7 @@ import {
     deleteClub          // Delete club (Faculty coordinator only)
 } from "../controllers/club.controller.js";
 import { verifyJWT, verifyFaculty } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
 
@@ -32,10 +33,10 @@ router.route("/:clubId/leave").post(verifyJWT, leaveClub);
 
 // Faculty-only routes
 // 7. Create clubs (Faculty only)
-router.route("/").post(verifyJWT, verifyFaculty, createClub);
+router.route("/").post(verifyJWT, verifyFaculty, upload.single("image"), createClub);
 
 // 8. Update own clubs (as coordinator - Faculty only)
-router.route("/:clubId").put(verifyJWT, verifyFaculty, updateClub);
+router.route("/:clubId").put(verifyJWT, verifyFaculty, upload.single("image"), updateClub);
 
 // 9. Remove members from own clubs (Faculty coordinator only)
 router.route("/:clubId/remove-member/:userId").delete(verifyJWT, verifyFaculty, removeMemberFromClub);

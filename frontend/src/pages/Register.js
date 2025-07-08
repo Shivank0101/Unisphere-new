@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Base URL - Change this to switch between development and production
+// const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -31,8 +35,8 @@ const Register = () => {
     }
 
     try {
-      await axios.post(
-        'https://unisphere-backend-o6o2.onrender.com/api/v1/users/register',
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/users/register`,
         {
           ...formData,
           interests: formData.interests.split(',').map(item => item.trim())
@@ -40,10 +44,12 @@ const Register = () => {
         { withCredentials: true }
       );
 
+      console.log('Registration successful:', response.data);
+      
       // Redirect to login on success
       navigate('/login');
     } catch (err) {
-      console.error(err);
+      console.error('Registration error:', err);
       setError(err.response?.data?.message || "Something went wrong");
     }
   };

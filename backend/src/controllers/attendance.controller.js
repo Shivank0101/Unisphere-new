@@ -2,6 +2,7 @@ import { Attendance } from "../models/attendance.model.js";
 import { Event } from "../models/event.model.js";
 import { User } from "../models/user.model.js";
 import { Registration } from "../models/registration.model.js";
+import { Club } from "../models/club.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -67,7 +68,7 @@ const getOwnAttendance = asyncHandler(async (req, res) => {
 // 1. Mark attendance for others
 const markAttendanceForOthers = asyncHandler(async (req, res) => {
     const { eventId } = req.params;
-    const { attendanceData } = req.body; // Array of { userId, status, notes }
+    const { attendanceData, userId, status, notes } = req.body; // Support both array and single record
     const facultyId = req.user._id;
 
     // Check if user is faculty
@@ -75,12 +76,70 @@ const markAttendanceForOthers = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Only faculty can mark attendance for others");
     }
 
-    // Check if event exists
-    const event = await Event.findById(eventId);
-    if (!event) {
+    // Check if event exists and get club information
+    const eventWithClub = await Event.findById(eventId).populate('club');
+    if (!eventWithClub) {
         throw new ApiError(404, "Event not found");
     }
 
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (eventWithClub.club.facultyCoordinator.toString() !== facultyId.toString()) {
+        throw new ApiError(403, "Only the faculty coordinator of this club can mark attendance for this event");
+    }
+
+    // Handle single attendance record
+    if (userId && !attendanceData) {
+        try {
+            // Check if user is registered for the event
+            const registration = await Registration.findOne({ user: userId, event: eventId });
+            if (!registration) {
+                throw new ApiError(400, "User is not registered for this event");
+            }
+
+            // Check if attendance already exists
+            let attendance = await Attendance.findOne({ user: userId, event: eventId });
+
+            if (attendance) {
+                // Update existing attendance
+                attendance.status = status || "present";
+                attendance.notes = notes;
+                attendance.markedBy = facultyId;
+                attendance.updatedAt = new Date();
+                await attendance.save();
+            } else {
+                // Create new attendance record
+                attendance = await Attendance.create({
+                    user: userId,
+                    event: eventId,
+                    markedBy: facultyId,
+                    status: status || "present",
+                    notes
+                });
+            }
+
+            // Update registration status to "attended" if attendance is marked as present
+            if (status === "present") {
+                await Registration.findOneAndUpdate(
+                    { user: userId, event: eventId },
+                    { status: "attended" }
+                );
+            }
+
+            await attendance.populate([
+                { path: "user", select: "name email department" },
+                { path: "event", select: "title" },
+                { path: "markedBy", select: "name" }
+            ]);
+
+            return res.status(200).json(
+                new ApiResponse(200, attendance, "Attendance marked successfully")
+            );
+        } catch (error) {
+            throw new ApiError(400, error.message);
+        }
+    }
+
+    // Handle multiple attendance records (original logic)
     const results = [];
     const errors = [];
 
@@ -103,6 +162,7 @@ const markAttendanceForOthers = asyncHandler(async (req, res) => {
                 attendance.status = status;
                 attendance.notes = notes;
                 attendance.markedBy = facultyId;
+                attendance.updatedAt = new Date();
                 await attendance.save();
             } else {
                 // Create new attendance record
@@ -139,7 +199,90 @@ const markAttendanceForOthers = asyncHandler(async (req, res) => {
     );
 });
 
-// 2. View others' attendance
+// 2. Edit single student attendance (New function - Only for club coordinators)
+const editStudentAttendance = asyncHandler(async (req, res) => {
+    const { eventId, userId } = req.params;
+    const { status, notes } = req.body;
+    const facultyId = req.user._id;
+
+    // Check if user is faculty
+    if (req.user.role !== "faculty") {
+        throw new ApiError(403, "Only faculty can edit attendance");
+    }
+
+    // Validate status
+    const validStatuses = ["present", "absent", "late"];
+    if (!validStatuses.includes(status)) {
+        throw new ApiError(400, "Invalid attendance status. Must be: present, absent, or late");
+    }
+
+    // Check if event exists and get club information
+    const eventDetails = await Event.findById(eventId).populate('club');
+    if (!eventDetails) {
+        throw new ApiError(404, "Event not found");
+    }
+
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (eventDetails.club.facultyCoordinator.toString() !== facultyId.toString()) {
+        throw new ApiError(403, "Only the faculty coordinator of this club can edit attendance for this event");
+    }
+
+    // Check if user is registered for the event
+    const registration = await Registration.findOne({ user: userId, event: eventId });
+    if (!registration) {
+        throw new ApiError(400, "User is not registered for this event");
+    }
+
+    // Check if student exists
+    const student = await User.findById(userId);
+    if (!student) {
+        throw new ApiError(404, "Student not found");
+    }
+
+    // Find or create attendance record
+    let attendance = await Attendance.findOne({ user: userId, event: eventId });
+
+    if (attendance) {
+        // Update existing attendance
+        attendance.status = status;
+        attendance.notes = notes || attendance.notes;
+        attendance.markedBy = facultyId;
+        attendance.updatedAt = new Date();
+        await attendance.save();
+    } else {
+        // Create new attendance record
+        attendance = await Attendance.create({
+            user: userId,
+            event: eventId,
+            markedBy: facultyId,
+            status,
+            notes: notes || `Marked as ${status} by faculty coordinator`
+        });
+    }
+
+    // Update registration status based on attendance
+    let registrationStatus = "registered";
+    if (status === "present") {
+        registrationStatus = "attended";
+    }
+
+    await Registration.findOneAndUpdate(
+        { user: userId, event: eventId },
+        { status: registrationStatus }
+    );
+
+    await attendance.populate([
+        { path: "user", select: "name email department" },
+        { path: "event", select: "title startDate endDate" },
+        { path: "markedBy", select: "name" }
+    ]);
+
+    return res.status(200).json(
+        new ApiResponse(200, attendance, `Student attendance updated to ${status} successfully`)
+    );
+});
+
+// 3. View others' attendance
 const getOthersAttendance = asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const { page = 1, limit = 10, eventId } = req.query;
@@ -172,7 +315,7 @@ const getOthersAttendance = asyncHandler(async (req, res) => {
     );
 });
 
-// 3. View event attendance
+// 4. View event attendance
 const getEventAttendance = asyncHandler(async (req, res) => {
     const { eventId } = req.params;
     const { page = 1, limit = 10, status } = req.query;
@@ -182,10 +325,15 @@ const getEventAttendance = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Only faculty can view event attendance");
     }
 
-    // Check if event exists
-    const event = await Event.findById(eventId);
+    // Check if event exists and get club information
+    const event = await Event.findById(eventId).populate('club');
     if (!event) {
         throw new ApiError(404, "Event not found");
+    }
+
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (event.club.facultyCoordinator.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "Only the faculty coordinator of this club can view attendance for this event");
     }
 
     const filter = { event: eventId };
@@ -233,7 +381,7 @@ const getEventAttendance = asyncHandler(async (req, res) => {
     );
 });
 
-// 4. View all attendance reports
+// 5. View all attendance reports
 const getAllAttendanceReports = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, eventId, userId, status, startDate, endDate } = req.query;
 
@@ -242,7 +390,7 @@ const getAllAttendanceReports = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Only faculty can view all attendance reports");
     }
 
-    const filter = {};
+    let filter = {};
     if (eventId) filter.event = eventId;
     if (userId) filter.user = userId;
     if (status) filter.status = status;
@@ -253,13 +401,16 @@ const getAllAttendanceReports = asyncHandler(async (req, res) => {
         if (endDate) filter.createdAt.$lte = new Date(endDate);
     }
 
+    // Faculty can view ALL attendance records, but editing is restricted to their clubs
+    // No filter restriction here - they can see all records
+
     const options = {
         page: parseInt(page),
         limit: parseInt(limit),
         populate: [
             { path: "user", select: "name email department" },
             { path: "event", select: "title startDate endDate location club", 
-              populate: { path: "club", select: "name" } },
+              populate: { path: "club", select: "name facultyCoordinator" } },
             { path: "markedBy", select: "name role" }
         ],
         sort: { createdAt: -1 }
@@ -267,8 +418,25 @@ const getAllAttendanceReports = asyncHandler(async (req, res) => {
 
     const attendance = await Attendance.paginate(filter, options);
 
+    // Add a flag to each record indicating if the faculty can edit it
+    // Also filter out records with missing users or events (orphaned records)
+    const attendanceWithEditPermission = attendance.docs
+        .filter(record => record.user && record.event && record.event.club) // Filter out orphaned records
+        .map(record => {
+            const recordObj = record.toObject();
+            recordObj.canEdit = record.event?.club?.facultyCoordinator?.toString() === req.user._id.toString();
+            return recordObj;
+        });
+
+    const result = {
+        ...attendance,
+        docs: attendanceWithEditPermission,
+        totalDocs: attendanceWithEditPermission.length,
+        totalPages: Math.ceil(attendanceWithEditPermission.length / parseInt(limit))
+    };
+
     return res.status(200).json(
-        new ApiResponse(200, attendance, "All attendance reports retrieved successfully")
+        new ApiResponse(200, result, "All attendance reports retrieved successfully")
     );
 });
 
@@ -277,6 +445,9 @@ const getAllAttendanceReports = asyncHandler(async (req, res) => {
 // Generate QR code for event attendance
 const generateEventQRCode = asyncHandler(async (req, res) => {
     const { eventId } = req.params;
+
+    console.log("🔄 Generating QR code for event:", eventId);
+    console.log("👤 User role:", req.user.role);
 
     // Check if user is faculty
     if (req.user.role !== "faculty") {
@@ -289,36 +460,51 @@ const generateEventQRCode = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Event not found");
     }
 
-    // Generate a secure token for this QR code session
-    const qrToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
+    console.log("✅ Event found:", event.title);
 
-    // Create QR data
-    const qrData = {
-        eventId,
-        token: qrToken,
-        expiresAt: expiresAt.toISOString(),
-        type: 'attendance'
-    };
+    try {
+        // Generate a secure token for this QR code session
+        const qrToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
-    // Generate QR code
-    const qrCodeUrl = await QRCode.toDataURL(JSON.stringify(qrData));
+        console.log("🔑 Generated token:", qrToken.substring(0, 10) + "...");
 
-    // Store QR session in memory or database (for production, use Redis)
-    // For now, we'll store it temporarily in the event model
-    await Event.findByIdAndUpdate(eventId, {
-        $set: {
-            'qrSession': {
-                token: qrToken,
-                expiresAt,
-                createdBy: req.user._id
+        // Create QR data
+        const qrData = {
+            eventId,
+            token: qrToken,
+            expiresAt: expiresAt.toISOString(),
+            type: 'attendance'
+        };
+
+        console.log("📄 QR Data:", qrData);
+
+        // Generate QR code
+        console.log("🎨 Generating QR code...");
+        const qrCodeUrl = await QRCode.toDataURL(JSON.stringify(qrData));
+        console.log("✅ QR code generated successfully");
+
+        // Store QR session in memory or database (for production, use Redis)
+        // For now, we'll store it temporarily in the event model
+        await Event.findByIdAndUpdate(eventId, {
+            $set: {
+                'qrSession': {
+                    token: qrToken,
+                    expiresAt,
+                    createdBy: req.user._id
+                }
             }
-        }
-    });
+        });
 
-    return res.status(200).json(
-        new ApiResponse(200, { qrCodeUrl, expiresAt }, "QR code generated successfully")
-    );
+        console.log("💾 QR session stored successfully");
+
+        return res.status(200).json(
+            new ApiResponse(200, { qrCodeUrl, expiresAt }, "QR code generated successfully")
+        );
+    } catch (error) {
+        console.error("❌ QR Generation Error:", error);
+        throw new ApiError(500, `QR code generation failed: ${error.message}`);
+    }
 });
 
 // Mark attendance using QR code
@@ -422,12 +608,116 @@ const getAttendanceSummary = asyncHandler(async (req, res) => {
     );
 });
 
+// Get attendance for a specific club event (Club coordinator only)
+const getClubEventAttendance = asyncHandler(async (req, res) => {
+    const { eventId } = req.params;
+    const { page = 1, limit = 10, status } = req.query;
+    const facultyId = req.user._id;
+
+    // Check if user is faculty
+    if (req.user.role !== "faculty") {
+        throw new ApiError(403, "Only faculty can view club event attendance");
+    }
+
+    // Check if event exists and get club information
+    const event = await Event.findById(eventId).populate('club');
+    if (!event) {
+        throw new ApiError(404, "Event not found");
+    }
+
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (event.club.facultyCoordinator.toString() !== facultyId.toString()) {
+        throw new ApiError(403, "Only the faculty coordinator of this club can view attendance for this event");
+    }
+
+    const filter = { event: eventId };
+    if (status) {
+        filter.status = status;
+    }
+
+    const options = {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        populate: [
+            { path: "user", select: "name email department" },
+            { path: "markedBy", select: "name" }
+        ],
+        sort: { createdAt: -1 }
+    };
+
+    const attendance = await Attendance.paginate(filter, options);
+
+    // Get attendance statistics
+    const stats = await Attendance.aggregate([
+        { $match: { event: new mongoose.Types.ObjectId(eventId) } },
+        {
+            $group: {
+                _id: "$status",
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
+    // Get total registered users for this event
+    const totalRegistered = await Registration.countDocuments({ event: eventId });
+
+    const result = {
+        attendance,
+        statistics: {
+            totalRegistered,
+            attendanceStats: stats,
+            attendanceRate: attendance.totalDocs > 0 ? (attendance.totalDocs / totalRegistered * 100).toFixed(2) : 0
+        }
+    };
+
+    return res.status(200).json(
+        new ApiResponse(200, result, "Club event attendance retrieved successfully")
+    );
+});
+
+// Cleanup orphaned attendance records
+const cleanupOrphanedAttendance = asyncHandler(async (req, res) => {
+    // Check if user is faculty
+    if (req.user.role !== "faculty") {
+        throw new ApiError(403, "Only faculty can cleanup attendance records");
+    }
+
+    try {
+        // Find all attendance records
+        const allAttendance = await Attendance.find({}).populate(['user', 'event']);
+        
+        // Identify orphaned records (where user or event doesn't exist)
+        const orphanedRecords = allAttendance.filter(record => !record.user || !record.event);
+        
+        if (orphanedRecords.length > 0) {
+            // Delete orphaned records
+            const orphanedIds = orphanedRecords.map(record => record._id);
+            await Attendance.deleteMany({ _id: { $in: orphanedIds } });
+            
+            console.log(`🧹 Cleaned up ${orphanedRecords.length} orphaned attendance records`);
+            
+            return res.status(200).json(
+                new ApiResponse(200, { cleanedCount: orphanedRecords.length }, `Successfully cleaned up ${orphanedRecords.length} orphaned attendance records`)
+            );
+        } else {
+            return res.status(200).json(
+                new ApiResponse(200, { cleanedCount: 0 }, "No orphaned attendance records found")
+            );
+        }
+    } catch (error) {
+        console.error('❌ Error cleaning up orphaned records:', error);
+        throw new ApiError(500, "Failed to cleanup orphaned attendance records");
+    }
+});
+
 export {
     // Student functions
     getOwnAttendance,
     
     // Faculty functions
     markAttendanceForOthers,
+    editStudentAttendance,
+    getClubEventAttendance,
     getOthersAttendance,
     getEventAttendance,
     getAllAttendanceReports,
@@ -437,5 +727,8 @@ export {
     markAttendanceByQR,
     
     // Summary function
-    getAttendanceSummary
+    getAttendanceSummary,
+
+    // Cleanup function
+    cleanupOrphanedAttendance
 };
