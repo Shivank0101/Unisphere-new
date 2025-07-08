@@ -32,7 +32,7 @@ const Register = () => {
 
     try {
       await axios.post(
-        'http://localhost:5001/api/v1/users/register',
+        'https://unisphere-backend-o6o2.onrender.com/api/v1/users/register',
         {
           ...formData,
           interests: formData.interests.split(',').map(item => item.trim())
