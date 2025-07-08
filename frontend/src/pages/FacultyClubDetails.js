@@ -18,7 +18,7 @@ const FacultyClubDetails = () => {
   const fetchClub = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`http://localhost:5001/api/v1/clubs/${clubId}`, {
+      const res = await axios.get(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${clubId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setClub(res.data.data);
@@ -40,7 +40,7 @@ const FacultyClubDetails = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:5001/api/v1/clubs/${clubId}/join`,
+        `https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${clubId}/join`,
         { userId: newMemberId }, // assuming your backend accepts this structure
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +57,7 @@ const FacultyClubDetails = () => {
   const handleRemoveMember = async (userId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5001/api/v1/clubs/${clubId}/remove-member/${userId}`, {
+      await axios.delete(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${clubId}/remove-member/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchClub();
@@ -71,7 +71,7 @@ const FacultyClubDetails = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:5001/api/v1/clubs/${clubId}`,
+        `https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${clubId}`,
         {
           name: updatedClub.name,
           description: updatedClub.description,
