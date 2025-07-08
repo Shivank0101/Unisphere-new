@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await axios.post(
-        'http://localhost:5001/api/v1/users/logout',
+        'https://unisphere-backend-o6o2.onrender.com/api/v1/users/logout',
         {},
         {
           withCredentials: true,
