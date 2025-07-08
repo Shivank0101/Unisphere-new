@@ -23,7 +23,7 @@ const CreateClub = () => {
 
       // ✅ Updated API URL with correct port (backend is on 5001)
       const response = await axios.post(
-        'http://localhost:5001/api/v1/clubs',
+        'https://unisphere-backend-o6o2.onrender.com/api/v1/clubs',
         { name, description },
         {
           headers: {
