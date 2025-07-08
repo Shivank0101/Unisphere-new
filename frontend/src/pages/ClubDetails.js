@@ -22,7 +22,7 @@ const ClubDetails = () => {
     const fetchClubDetails = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:5001/api/v1/clubs/${id}`, {
+        const res = await axios.get(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -42,7 +42,7 @@ const ClubDetails = () => {
   const handleJoinClub = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5001/api/v1/clubs/${id}/join`, {}, {
+      await axios.post(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${id}/join`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +58,7 @@ const ClubDetails = () => {
   const handleLeaveClub = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5001/api/v1/clubs/${id}/leave`, {}, {
+      await axios.post(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${id}/leave`, {}, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

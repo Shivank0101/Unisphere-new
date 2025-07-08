@@ -10,7 +10,7 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5001/api/auth/signup', { email, password });
+      await axios.post('https://unisphere-backend-o6o2.onrender.com/api/auth/signup', { email, password });
       alert('Signup successful! Please login.');
       navigate('/login');
     } catch (err) {

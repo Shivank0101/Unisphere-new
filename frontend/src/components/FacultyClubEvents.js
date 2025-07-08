@@ -22,7 +22,7 @@ const FacultyClubEvents = ({ clubId }) => {
   const fetchClubEvents = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`http://localhost:5001/api/v1/events/club/${clubId}`, {
+      const res = await axios.get(`http://unisphere-backend-o6o2.onrender.com/api/v1/events/club/${clubId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(res.data);
@@ -40,7 +40,7 @@ const FacultyClubEvents = ({ clubId }) => {
         maxCapacity: Number(newEvent.maxCapacity),
         eventType: newEvent.eventType.toLowerCase()
       };
-      await axios.post(`http://localhost:5001/api/v1/events`, payload, {
+      await axios.post(`http://unisphere-backend-o6o2.onrender.com/api/v1/events`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       resetForm();
@@ -60,7 +60,7 @@ const FacultyClubEvents = ({ clubId }) => {
         maxCapacity: Number(newEvent.maxCapacity),
         eventType: newEvent.eventType.toLowerCase()
       };
-      await axios.put(`http://localhost:5001/api/v1/events/${editingEventId}`, payload, {
+      await axios.put(`http://unisphere-backend-o6o2.onrender.com/api/v1/events/${editingEventId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       resetForm();
@@ -74,7 +74,7 @@ const FacultyClubEvents = ({ clubId }) => {
   const handleDeleteEvent = async (eventId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5001/api/v1/events/${eventId}`, {
+      await axios.delete(`http://unisphere-backend-o6o2.onrender.com/api/v1/events/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchClubEvents();
@@ -87,7 +87,7 @@ const FacultyClubEvents = ({ clubId }) => {
   const handleSendReminder = async (eventId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`http://localhost:5001/api/v1/events/${eventId}/remind`, {}, {
+      await axios.post(`http://unisphere-backend-o6o2.onrender.com/api/v1/events/${eventId}/remind`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("Reminder sent successfully!");
@@ -109,7 +109,7 @@ const FacultyClubEvents = ({ clubId }) => {
  const handleGenerateQR = async (eventId) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.post(`http://localhost:5001/api/v1/attendance/qr/generate/${eventId}`, {}, {
+    const response = await axios.post(`http://unisphere-backend-o6o2.onrender.com/api/v1/attendance/qr/generate/${eventId}`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }

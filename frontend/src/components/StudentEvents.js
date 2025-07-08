@@ -18,7 +18,7 @@ const StudentEvents = ({ clubId, events }) => {
 
     const fetchMyRegistrations = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/api/v1/registrations/my-registrations", {
+        const res = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/my-registrations", {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -40,7 +40,7 @@ const StudentEvents = ({ clubId, events }) => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/v1/registrations/register",
+        "https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/register",
         { eventId },
         {
           headers: {
@@ -59,7 +59,7 @@ const StudentEvents = ({ clubId, events }) => {
   const handleUnregister = async (eventId) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.post(`http://localhost:5001/api/v1/registrations/unregister`, 
+      await axios.post(`https://unisphere-backend-o6o2.onrender.com/api/v1/registrations/unregister`, 
         { eventId },
         {
           headers: { Authorization: `Bearer ${token}` }

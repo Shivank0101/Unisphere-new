@@ -68,7 +68,7 @@ const QRScanner = ({ onClose, onSuccess }) => {
         
         // Send the QR data to mark attendance - FIXED URL
         const response = await axios.post(
-          "http://localhost:5001/api/v1/attendance/qr/mark", // Fixed: was /mark-qr
+          "http://unisphere-backend-o6o2.onrender.com/api/v1/attendance/qr/mark", // Fixed: was /mark-qr
           { qrData: data },
           {
             headers: {

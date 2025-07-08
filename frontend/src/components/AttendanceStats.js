@@ -35,7 +35,7 @@ const AttendanceStats = () => {
   const fetchAttendanceData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5001/api/v1/attendance/my-attendance", {
+      const response = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/attendance/my-attendance", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
