@@ -3,12 +3,11 @@ import {
     getAllClubs,        // 1. View all clubs
     getUserClubs,       // 2. View own clubs  
     getClubById,        // 3. View single club details
-    getClubMembers,     // 4. Total club members
-    joinClub,           // 5. Join club
-    leaveClub,          // 6. Leave club
-    createClub,         // 7. Create clubs (Faculty only)
-    updateClub,         // 8. Update own clubs (as coordinator - Faculty only)
-    removeMemberFromClub, // 9. Remove members from own clubs (Faculty coordinator only)
+    joinClub,           // 4. Join club
+    leaveClub,          // 5. Leave club
+    createClub,         // 6. Create clubs (Faculty only)
+    updateClub,         // 7. Update own clubs (as coordinator - Faculty only)
+    removeMemberFromClub, // 8. Remove members from own clubs (Faculty coordinator only)
     deleteClub          // Delete club (Faculty coordinator only)
 } from "../controllers/club.controller.js";
 import { verifyJWT, verifyFaculty } from "../middlewares/auth.middleware.js";
@@ -20,9 +19,6 @@ router.route("/").get(getAllClubs);
 
 // 3. View single club details - Public route  
 router.route("/:clubId").get(getClubById);
-
-// 4. Total club members - Public route
-router.route("/:clubId/members").get(getClubMembers);
 
 // Protected routes - require authentication
 // 2. View own clubs

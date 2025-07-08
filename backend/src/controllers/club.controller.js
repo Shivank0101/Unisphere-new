@@ -173,43 +173,7 @@ const getClubById = asyncHandler(async (req, res) => {
 });
 
 // 4. Total club members
-const getClubMembers = asyncHandler(async (req, res) => {
-    const { clubId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(clubId)) {
-        throw new ApiError(400, "Invalid club ID");
-    }
-
-    // Check if club exists
-    const club = await Club.findById(clubId)
-        .populate({
-            path: 'members',
-            select: 'name email department role createdAt',
-            options: { sort: { createdAt: 1 } } // Sort by join date
-        })
-        .populate('facultyCoordinator', 'name email department');
-
-    if (!club) {
-        throw new ApiError(404, "Club not found");
-    }
-
-    // Prepare response with club info and members
-    const response = {
-        club: {
-            _id: club._id,
-            name: club.name,
-            description: club.description,
-            coordinator: club.facultyCoordinator,
-            memberCount: club.members ? club.members.length : 0
-        },
-        members: club.members || [],
-        totalMembers: club.members ? club.members.length : 0
-    };
-
-    return res.status(200).json(
-        new ApiResponse(200, response, "Club members retrieved successfully")
-    );
-});
+ 
 
 // 5. Join club
 const joinClub = asyncHandler(async (req, res) => {
@@ -485,11 +449,10 @@ export {
     getAllClubs,        // 1. View all clubs
     getUserClubs,       // 2. View own clubs  
     getClubById,        // 3. View single club details
-    getClubMembers,     // 4. Total club members
-    joinClub,           // 5. Join club
-    leaveClub,          // 6. Leave club
-    createClub,         // 7. Create clubs (Faculty only)
-    updateClub,         // 8. Update own clubs (as coordinator - Faculty only)
-    removeMemberFromClub, // 9. Remove members from own clubs (Faculty coordinator only)
+    joinClub,           // 4. Join club
+    leaveClub,          // 5. Leave club
+    createClub,         // 6. Create clubs (Faculty only)
+    updateClub,         // 7. Update own clubs (as coordinator - Faculty only)
+    removeMemberFromClub, // 8. Remove members from own clubs (Faculty coordinator only)
     deleteClub          // Delete club (Faculty coordinator only)
 };
