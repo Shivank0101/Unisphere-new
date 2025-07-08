@@ -17,7 +17,7 @@ const FacultyDashboard = () => {
   const fetchClubs = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5001/api/v1/clubs", {
+      const res = await axios.get("https://unisphere-backend-o6o2.onrender.com/api/v1/clubs", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -33,7 +33,7 @@ const FacultyDashboard = () => {
   const handleDelete = async (clubId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5001/api/v1/clubs/${clubId}`, {
+      await axios.delete(`https://unisphere-backend-o6o2.onrender.com/api/v1/clubs/${clubId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
