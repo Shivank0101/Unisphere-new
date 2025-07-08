@@ -69,7 +69,7 @@ const FacultyAttendanceReports = () => {
       });
 
       const response = await axios.get(
-        `http://localhost:5001/api/v1/attendance/reports?${params}`,
+        `http://unisphere-backend-o6o2.onrender.com/api/v1/attendance/reports?${params}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -91,13 +91,13 @@ const FacultyAttendanceReports = () => {
       const token = localStorage.getItem('token');
       
       // Fetch events for filter dropdown
-      const eventsRes = await axios.get('http://localhost:5001/api/v1/events', {
+      const eventsRes = await axios.get('http://unisphere-backend-o6o2.onrender.com/api/v1/events', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEvents(eventsRes.data?.data?.events || []);
 
       // Fetch users (students) for filter dropdown
-      const usersRes = await axios.get('http://localhost:5001/api/v1/users/all', {
+      const usersRes = await axios.get('http://unisphere-backend-o6o2.onrender.com/api/v1/users/all', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const studentsList = usersRes.data?.data?.docs?.filter(user => user.role === 'student') || [];
