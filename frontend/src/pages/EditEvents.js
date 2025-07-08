@@ -13,7 +13,7 @@ const EditEvent = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    axios.get(`http://localhost:5001/api/events/${id}`)
+    axios.get(`https://unisphere-backend-o6o2.onrender.com/api/events/${id}`)
       .then((res) => {
         const { name, date, location, description } = res.data;
         setName(name);
@@ -26,7 +26,7 @@ const EditEvent = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.put(`http://localhost:5001/api/events/${id}`, {
+    axios.put(`https://unisphere-backend-o6o2.onrender.com/api/events/${id}`, {
       name,
       date,
       location,
