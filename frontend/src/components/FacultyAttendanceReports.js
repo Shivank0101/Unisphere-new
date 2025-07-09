@@ -16,8 +16,8 @@ import { Bar, Pie, Line } from 'react-chartjs-2';
 import { toast } from 'react-toastify';
 
 // Base URL - Change this to switch between development and production
-//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
-const BASE_URL = "http://localhost:5001"; // Development
+const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+// const BASE_URL = "http://localhost:5001"; // Development
 
 // Register ChartJS components
 ChartJS.register(

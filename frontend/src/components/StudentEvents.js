@@ -5,8 +5,8 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Base URL - Change this to switch between development and production
-//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
-const BASE_URL = "http://localhost:5001"; // Development
+const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+// const BASE_URL = "http://localhost:5001"; // Development
 
 const StudentEvents = ({ clubId, events }) => {
   const [registeredEventIds, setRegisteredEventIds] = useState([]);

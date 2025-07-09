@@ -5,7 +5,9 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FacultyAttendanceReports from "../components/FacultyAttendanceReports";
 
-const BASE_URL = "http://localhost:5001";
+const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+
+// const BASE_URL = "http://localhost:5001";
 
 const FacultyDashboard = () => {
   const [clubs, setClubs] = useState([]);

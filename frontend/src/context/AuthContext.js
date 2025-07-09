@@ -2,8 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Base URL - Change this to switch between development and production
-//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
-const BASE_URL = "http://localhost:5001"; // Development
+const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+// const BASE_URL = "http://localhost:5001"; // Development
 
 const AuthContext = createContext();
 
