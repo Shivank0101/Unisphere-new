@@ -17,11 +17,11 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-    // origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    origin: [
-    "http://localhost:3000",                     // for local dev
-    "https://unisphere-frontend.onrender.com"    // ✅ your deployed frontend
-  ],
+    origin: "https://unisphere-frontend.onrender.com",
+  //   origin: [
+  //   "http://localhost:3000",                     // for local dev
+  //   "https://unisphere-frontend.onrender.com",    // ✅ your deployed frontend
+  // ],
     credentials: true
 }));
 app.use(express.json({ limit: "16kb" }));
