@@ -97,7 +97,7 @@ const StudentDashboard = () => {
   {clubs.map((club) => (
     <div
       key={club._id}
-      className="bg-gray-900 rounded-xl border border-gray-700 shadow-md hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out overflow-hidden"
+      className="rounded-xl border border-cyan-400/30 bg-[#0e1a2b]/60 backdrop-blur-md shadow-md hover:shadow-[0_0_15px_#00ffff] hover:scale-105 transition duration-300 ease-in-out overflow-hidden"
     >
       {/* Club Image */}
       {club.imageUrl && (
@@ -121,12 +121,13 @@ const StudentDashboard = () => {
         </p>
 
         <div className="text-sm text-gray-400 mb-3">
-          <p><span className="font-medium text-gray-300">Members:</span> {club.memberCount}</p>
+          <p><span className="font-medium text-cyan-300 mb-4">Members:</span> {club.memberCount}</p>
           {/* <p><span className="font-medium text-gray-300">Events:</span> {club.eventCount}</p> */}
         </div>
 
         <button
-          className="mt-4 w-full bg-green-600 text-white font-semibold py-2 px-4 rounded hover:bg-green-700 transition"
+          className="mt-4 w-full  text-white font-semibold py-2 px-4 rounded bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600
+ transition"
           onClick={() => navigate(`/studentdashboard/clubdetails/${club._id}`)}
         >
           View Details
@@ -135,11 +136,6 @@ const StudentDashboard = () => {
     </div>
   ))}
 </div>
-
-
-
-
-
 
       </section>
 
@@ -158,7 +154,7 @@ const StudentDashboard = () => {
             {registrations.map((registration) => (
               <div
                 key={registration._id}
-                className="bg-gray-900 rounded-xl border border-gray-700 shadow-md hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+                className="rounded-xl border border-cyan-400/20 bg-[#0e1a2b]/60 backdrop-blur-md shadow-md hover:shadow-[0_0_20px_#00ffff] hover:scale-105 transition duration-300 ease-in-out overflow-hidden"
               >
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-white mb-2">
@@ -210,14 +206,7 @@ const StudentDashboard = () => {
                     }</p>
                   </div>
 
-                  <div className="space-y-2">
-                    <button
-                      className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
-                      onClick={() => navigate(`/event/${registration.event?._id}`)}
-                    >
-                      View Event Details
-                    </button>
-                    
+                  <div className="space-y-2">                                  
                     {registration.status === 'registered' && (
                       <button
                         className="w-full bg-yellow-600 text-white font-semibold py-2 px-4 rounded hover:bg-yellow-700 transition"

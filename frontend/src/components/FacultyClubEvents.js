@@ -349,7 +349,7 @@ const FacultyClubEvents = ({ clubId }) => {
   }, [clubId]);
 
   return (
-    <div className="bg-gray-900 p-4 mt-6 rounded-lg">
+   <div className="backdrop-blur-xl bg-white/5 border border-cyan-400 rounded-xl p-6 shadow-2xl shadow-cyan-400/40 hover:shadow-cyan-400/80 hover:scale-[1.02] transition-all duration-300 mt-6">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-white">📅 Club Events</h2>
         <button
@@ -364,7 +364,7 @@ const FacultyClubEvents = ({ clubId }) => {
       </div>
 
       {showCreateForm && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 bg-gray-800 p-6 rounded-lg shadow-md text-white">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 backdrop-blur-lg bg-white/5 border border-emerald-400 rounded-xl p-6 shadow-2xl shadow-emerald-400/40 hover:shadow-emerald-400/80 transition-all duration-300 text-white">
           <input className="p-2 rounded bg-gray-700 text-white placeholder-gray-400"
             placeholder="Title"
             value={newEvent.title}
@@ -527,7 +527,7 @@ const FacultyClubEvents = ({ clubId }) => {
           <p className="text-gray-400">No events available.</p>
         ) : (
           events.map((event) => (
-            <div key={event._id} className="bg-gray-800 p-4 rounded text-white">
+            <div key={event._id} className="backdrop-blur-lg bg-white/5 border border-purple-400 rounded-xl p-5 shadow-2xl shadow-purple-400/40 hover:shadow-purple-400/80 hover:scale-[1.02] transition-all duration-300 text-white">
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Event Image */}
                 {event.imageUrl && (
@@ -569,10 +569,10 @@ const FacultyClubEvents = ({ clubId }) => {
               </div>
               
               <div className="flex flex-wrap gap-3 mt-3">
-                <button onClick={() => handleEditClick(event)} className="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded">✏ Edit</button>
-                <button onClick={() => handleDeleteEvent(event._id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">🗑 Delete</button>
-                <button onClick={() => handleSendReminder(event._id)} className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded">📧 Send Reminder</button>
-                <button onClick={() => handleGenerateQR(event._id)} className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded">📷 Generate QR</button>
+                <button onClick={() => handleEditClick(event)} className="bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/40 hover:shadow-blue-600/70 px-3 py-1 rounded transition-all duration-200">✏ Edit</button>
+                <button onClick={() => handleDeleteEvent(event._id)} className="bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/40 hover:shadow-red-600/70 px-3 py-1 rounded transition-all duration-200">🗑 Delete</button>
+                <button onClick={() => handleSendReminder(event._id)} className="bg-yellow-600 hover:bg-yellow-700 shadow-md shadow-yellow-600/40 hover:shadow-yellow-600/70 px-3 py-1 rounded transition-all duration-200">📧 Send Reminder</button>
+                <button onClick={() => handleGenerateQR(event._id)} className="bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/40 hover:shadow-purple-600/70 px-3 py-1 rounded transition-all duration-200">📷 Generate QR</button>
               </div>
             </div>
           ))

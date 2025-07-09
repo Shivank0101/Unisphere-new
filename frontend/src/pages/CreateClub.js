@@ -170,6 +170,7 @@ const CreateClub = () => {
     <div className="max-w-lg mx-auto mt-10 p-8 bg-white shadow-lg rounded-lg">
       <h2 className="text-3xl font-bold mb-6 text-center text-indigo-700">➕ Create a New Club</h2>
 
+
       <form onSubmit={handleCreateClub} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1">
@@ -181,7 +182,7 @@ const CreateClub = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+           className="w-full px-4 py-2 text-gray-800 placeholder-white/60 border border-purple-400 rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none"
             placeholder="e.g. Coding Club"
           />
         </div>
@@ -195,7 +196,7 @@ const CreateClub = () => {
             rows="4"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="w-full px-4 py-2 text-gray-800 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             placeholder="Tell something about the club..."
           ></textarea>
         </div>
@@ -239,7 +240,7 @@ const CreateClub = () => {
                 type="url"
                 value={imageUrl}
                 onChange={handleImageUrlChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 placeholder="https://example.com/club-image.jpg"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -327,6 +328,8 @@ const CreateClub = () => {
         {error && <p className="text-red-600 text-center">{error}</p>}
         {success && <p className="text-green-600 text-center">{success}</p>}
       </form>
+      
+      
     </div>
   );
 };

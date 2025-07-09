@@ -106,7 +106,7 @@ const StudentEvents = ({ clubId, events }) => {
           {events.map(event => (
             <div
               key={event._id}
-              className="bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-6 transition duration-300 ease-in-out hover:shadow-2xl"
+              className="bg-white/5 backdrop-blur-md border border-cyan-400/20 rounded-xl shadow-md p-6 transition duration-300 ease-in-out hover:shadow-[0_0_20px_#00fff7]"
             >
               {/* Event Image */}
               {event.imageUrl && (
@@ -158,7 +158,7 @@ const StudentEvents = ({ clubId, events }) => {
               ) : (
                 <button
                   onClick={() => handleRegisterClick(event._id)}
-                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition"
+                  className="mt-4 w-full bg-gradient-to-r from-lime-400 to-emerald-500 hover:from-lime-500 hover:to-emerald-600 text-white font-bold py-2 px-4 rounded-md transition duration-200 hover:shadow-[0_0_10px_#3fff70]"
                 >
                   Register
                 </button>
