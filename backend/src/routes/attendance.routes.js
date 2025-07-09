@@ -10,7 +10,8 @@ import {
     cleanupOrphanedAttendance,
     generateEventQRCode,
     markAttendanceByQR,
-    getAttendanceSummary
+    getAttendanceSummary,
+    debugAttendanceData
 } from "../controllers/attendance.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -37,6 +38,9 @@ router.route("/qr/mark").post(markAttendanceByQR); // Mark attendance using QR c
 
 // Summary routes
 router.route("/summary/:userId?").get(getAttendanceSummary); // Get attendance summary
+
+// Debug routes (temporary)
+router.route("/debug").get(debugAttendanceData); // Debug attendance data
 
 // Cleanup routes
 router.route("/cleanup").post(cleanupOrphanedAttendance); // Cleanup orphaned attendance records (faculty only)

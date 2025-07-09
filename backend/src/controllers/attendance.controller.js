@@ -408,38 +408,97 @@ const getAllAttendanceReports = asyncHandler(async (req, res) => {
         if (endDate) filter.createdAt.$lte = new Date(endDate);
     }
 
-    // Faculty can view ALL attendance records, but editing is restricted to their clubs
-    // No filter restriction here - they can see all records
+    console.log("🔍 Filter being used:", filter);
+    console.log("👤 Faculty user ID:", req.user._id);
 
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        populate: [
+    // First check basic find without pagination
+    const basicCount = await Attendance.countDocuments(filter);
+    console.log("🔢 Basic count with filter:", basicCount);
+    
+    const allCount = await Attendance.countDocuments({});
+    console.log("🔢 Total attendance records in DB:", allCount);
+
+    // If no records found with basic find, there's a data issue
+    if (allCount === 0) {
+        console.log("❌ No attendance records found in database at all!");
+        return res.status(200).json(
+            new ApiResponse(200, { docs: [], totalDocs: 0, totalPages: 0 }, "No attendance records found in database")
+        );
+    }
+
+    // Get a few records with basic find for debugging
+    const sampleRecords = await Attendance.find(filter)
+        .populate([
             { path: "user", select: "name email department" },
             { path: "event", select: "title startDate endDate location club", 
               populate: { path: "club", select: "name facultyCoordinator" } },
             { path: "markedBy", select: "name role" }
-        ],
-        sort: { createdAt: -1 }
-    };
+        ])
+        .limit(parseInt(limit))
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .sort({ createdAt: -1 });
 
-    const attendance = await Attendance.paginate(filter, options);
+    console.log("� Sample records found:", sampleRecords.length);
 
-    // Add a flag to each record indicating if the faculty can edit it
-    // Also filter out records with missing users or events (orphaned records)
-    const attendanceWithEditPermission = attendance.docs
-        .filter(record => record.user && record.event && record.event.club) // Filter out orphaned records
-        .map(record => {
-            const recordObj = record.toObject();
-            recordObj.canEdit = record.event?.club?.facultyCoordinator?.toString() === req.user._id.toString();
-            return recordObj;
-        });
+    // Try pagination as backup
+    let attendance;
+    try {
+        const options = {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            populate: [
+                { path: "user", select: "name email department" },
+                { path: "event", select: "title startDate endDate location club", 
+                  populate: { path: "club", select: "name facultyCoordinator" } },
+                { path: "markedBy", select: "name role" }
+            ],
+            sort: { createdAt: -1 }
+        };
+
+        attendance = await Attendance.paginate(filter, options);
+        console.log("📊 Paginate results - Total:", attendance.totalDocs, "Current page:", attendance.docs.length);
+    } catch (paginateError) {
+        console.error("❌ Pagination error:", paginateError);
+        // Fallback to manual pagination
+        attendance = {
+            docs: sampleRecords,
+            totalDocs: basicCount,
+            totalPages: Math.ceil(basicCount / parseInt(limit)),
+            page: parseInt(page),
+            limit: parseInt(limit)
+        };
+    }
+
+    console.log("📄 Records in current page:", attendance.docs.length);
+
+    // Process records to add edit permissions
+    const attendanceWithEditPermission = attendance.docs.map(record => {
+        const recordObj = record.toObject();
+        
+        // Check if faculty can edit - only if they are the coordinator of the club
+        recordObj.canEdit = false;
+        if (record.event && record.event.club && record.event.club.facultyCoordinator) {
+            recordObj.canEdit = record.event.club.facultyCoordinator.toString() === req.user._id.toString();
+        }
+        
+        // Add debug info
+        recordObj.debug = {
+            hasUser: !!record.user,
+            hasEvent: !!record.event,
+            hasClub: !!(record.event && record.event.club),
+            clubCoordinator: record.event?.club?.facultyCoordinator?.toString(),
+            currentFaculty: req.user._id.toString()
+        };
+        
+        return recordObj;
+    });
+
+    console.log("✅ Processed records:", attendanceWithEditPermission.length);
+    console.log("🔧 Edit permissions:", attendanceWithEditPermission.map(r => ({ id: r._id, canEdit: r.canEdit })));
 
     const result = {
         ...attendance,
-        docs: attendanceWithEditPermission,
-        totalDocs: attendanceWithEditPermission.length,
-        totalPages: Math.ceil(attendanceWithEditPermission.length / parseInt(limit))
+        docs: attendanceWithEditPermission
     };
 
     return res.status(200).json(
@@ -717,6 +776,89 @@ const cleanupOrphanedAttendance = asyncHandler(async (req, res) => {
     }
 });
 
+// Debug function to check attendance data
+const debugAttendanceData = asyncHandler(async (req, res) => {
+    // Check if user is faculty
+    if (req.user.role !== "faculty") {
+        throw new ApiError(403, "Only faculty can access debug data");
+    }
+
+    console.log("🔍 DEBUG: Starting attendance data debug");
+    console.log("👤 Current user:", req.user.name, req.user._id);
+
+    // Get raw attendance count
+    const totalAttendance = await Attendance.countDocuments({});
+    console.log("📊 Total attendance records in DB:", totalAttendance);
+
+    // Get first few records without population
+    const rawRecords = await Attendance.find({}).limit(5);
+    console.log("📄 Raw records sample:", rawRecords.length);
+
+    // Get records with population
+    const populatedRecords = await Attendance.find({
+        })
+        .populate([
+            { path: "user", select: "name email department" },
+            { path: "event", select: "title startDate endDate location club", 
+              populate: { path: "club", select: "name facultyCoordinator" } },
+            { path: "markedBy", select: "name role" }
+        ])
+        .limit(5);
+
+    console.log("🔗 Populated records sample:", populatedRecords.length);
+
+    // Check each populated record
+    const recordAnalysis = populatedRecords.map(record => ({
+        id: record._id,
+        hasUser: !!record.user,
+        hasEvent: !!record.event,
+        hasClub: !!(record.event && record.event.club),
+        userName: record.user?.name || 'NULL',
+        eventTitle: record.event?.title || 'NULL',
+        clubName: record.event?.club?.name || 'NULL',
+        status: record.status,
+        createdAt: record.createdAt
+    }));
+
+    console.log("📋 Record analysis:", recordAnalysis);
+
+    // Check if specific record exists
+    const specificRecord = await Attendance.findById("686d3b9937a2990b9c80d4b6")
+        .populate([
+            { path: "user", select: "name email department" },
+            { path: "event", select: "title startDate endDate location club", 
+              populate: { path: "club", select: "name facultyCoordinator" } },
+            { path: "markedBy", select: "name role" }
+        ]);
+
+    console.log("🎯 Specific record found:", !!specificRecord);
+    if (specificRecord) {
+        console.log("🎯 Specific record details:", {
+            id: specificRecord._id,
+            user: specificRecord.user?.name,
+            event: specificRecord.event?.title,
+            club: specificRecord.event?.club?.name,
+            status: specificRecord.status
+        });
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, {
+            totalAttendance,
+            rawRecordsCount: rawRecords.length,
+            populatedRecordsCount: populatedRecords.length,
+            recordAnalysis,
+            specificRecord: specificRecord ? {
+                id: specificRecord._id,
+                user: specificRecord.user?.name,
+                event: specificRecord.event?.title,
+                club: specificRecord.event?.club?.name,
+                status: specificRecord.status
+            } : null
+        }, "Debug data retrieved successfully")
+    );
+});
+
 export {
     // Student functions
     getOwnAttendance,
@@ -737,5 +879,8 @@ export {
     getAttendanceSummary,
 
     // Cleanup function
-    cleanupOrphanedAttendance
+    cleanupOrphanedAttendance,
+
+    // Debug function
+    debugAttendanceData
 };
