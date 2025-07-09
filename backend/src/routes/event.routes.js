@@ -12,7 +12,7 @@ import {
   getUpcomingEvents,
   deactivateEvent
 } from '../controllers/event.controllers.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { verifyJWT, verifyFaculty } from '../middlewares/auth.middleware.js';
 import { upload } from '../middlewares/multer.middleware.js';
 
 // Public routes
@@ -23,10 +23,11 @@ router.get('/club/:clubId', getEventsByClub);
 router.get('/organizer/:organizerId', getEventsByOrganizer);
 router.get('/:id', getEventById);
 
-// Protected routes (require authentication)
-router.post('/', verifyJWT, upload.single('image'), createEvent);
-router.put('/:id', verifyJWT, upload.single('image'), updateEvent);
-router.put('/deactivate/:id', verifyJWT, deactivateEvent);
+// Protected routes (require authentication and faculty role)
+router.post('/', verifyJWT, verifyFaculty, upload.single('image'), createEvent);
+router.put('/:id', verifyJWT, verifyFaculty, upload.single('image'), updateEvent);
+router.put('/deactivate/:id', verifyJWT, verifyFaculty, deactivateEvent);
+router.delete('/:id', verifyJWT, verifyFaculty, deleteEvent);
 
 router.delete('/:id', verifyJWT, deleteEvent);
 

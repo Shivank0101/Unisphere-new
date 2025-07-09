@@ -573,7 +573,6 @@ const FacultyClubEvents = ({ clubId }) => {
                 <button onClick={() => handleDeleteEvent(event._id)} className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded">🗑 Delete</button>
                 <button onClick={() => handleSendReminder(event._id)} className="bg-yellow-600 hover:bg-yellow-700 px-3 py-1 rounded">📧 Send Reminder</button>
                 <button onClick={() => handleGenerateQR(event._id)} className="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded">📷 Generate QR</button>
-                <button onClick={() => navigate(`/faculty/event/${event._id}/attendance`)} className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded">👥 Manage Attendance</button>
               </div>
             </div>
           ))

@@ -40,10 +40,15 @@ const getOwnAttendance = asyncHandler(async (req, res) => {
     const absentCount = attendanceBreakdown.find(item => item._id === "absent")?.count || 0;
     const lateCount = attendanceBreakdown.find(item => item._id === "late")?.count || 0;
 
+    // Calculate attended events (present + late)
+    const attendedEvents = presentCount + lateCount;
+
+    // Calculate attendance percentage based on registered events
     const attendancePercentage = totalRegisteredEvents > 0 
-        ? ((totalAttendanceMarked / totalRegisteredEvents) * 100).toFixed(2)
+        ? ((attendedEvents / totalRegisteredEvents) * 100).toFixed(2)
         : 0;
 
+    // Calculate present percentage based on attendance records
     const presentPercentage = totalAttendanceMarked > 0 
         ? ((presentCount / totalAttendanceMarked) * 100).toFixed(2)
         : 0;
@@ -51,6 +56,7 @@ const getOwnAttendance = asyncHandler(async (req, res) => {
     const result = {
         totalRegisteredEvents,
         totalAttendanceMarked,
+        attendedEvents, // Add this field to show actual attended events
         attendancePercentage: parseFloat(attendancePercentage),
         presentPercentage: parseFloat(presentPercentage),
         breakdown: {
@@ -59,6 +65,7 @@ const getOwnAttendance = asyncHandler(async (req, res) => {
             late: lateCount
         }
     };
+    
 
     return res.status(200).json(
         new ApiResponse(200, result, "Attendance percentage retrieved successfully")

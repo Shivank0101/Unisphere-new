@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { BASE_URL } from "../config/api";
-
 import FacultyClubEvents from "../components/FacultyClubEvents";
+
+// Base URL - Change this to switch between development and production
+//const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+const BASE_URL = "http://localhost:5001"; // Development
 
 const FacultyClubDetails = () => {
   const { clubId } = useParams();

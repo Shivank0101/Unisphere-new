@@ -42,6 +42,11 @@ export const createEvent = async (req, res) => {
   // Get organizer from authenticated user
   const organizer = req.user._id;
   
+  // Ensure only faculty can create events
+  if (req.user.role !== "faculty") {
+    return res.status(403).json({ error: 'Only faculty members can create events' });
+  }
+  
   const eventStartDate = new Date(startDate);
   const eventEndDate = new Date(endDate);
   const now = new Date();
@@ -128,9 +133,27 @@ export const createEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     const { title, description, startDate, endDate, location, maxCapacity, eventType, imageUrl, tags } = req.body;
+    const { id } = req.params;
+    const currentUser = req.user; // From auth middleware
     
     console.log("Updating event with data:", req.body);
     console.log("Uploaded file:", req.file);
+    
+    // Ensure only faculty can update events
+    if (currentUser.role !== "faculty") {
+      return res.status(403).json({ error: 'Only faculty members can update events' });
+    }
+
+    // Find the event and populate the club information
+    const existingEvent = await Event.findById(id).populate('club');
+    if (!existingEvent) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (!existingEvent.club.facultyCoordinator.equals(currentUser._id)) {
+      return res.status(403).json({ error: 'Only the faculty coordinator of this club can update this event' });
+    }
     
     const updateData = {};
     if (title) updateData.title = title;
@@ -160,7 +183,7 @@ export const updateEvent = async (req, res) => {
     }
 
     const updatedEvent = await Event.findByIdAndUpdate(
-      req.params.id,
+      id,
       updateData,
       { new: true }
     ).populate('club', 'name category')
@@ -319,10 +342,34 @@ export const searchEvents = async (req, res) => {
 
 export const deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
-    if (!event) return res.status(404).json({ message: 'Event not found' });
+    const { id } = req.params;
+    const currentUser = req.user; // From auth middleware
+
+    // Ensure only faculty can delete events
+    if (currentUser.role !== "faculty") {
+      return res.status(403).json({ error: 'Only faculty members can delete events' });
+    }
+
+    // Find the event and populate the club information
+    const event = await Event.findById(id).populate('club');
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (!event.club.facultyCoordinator.equals(currentUser._id)) {
+      return res.status(403).json({ error: 'Only the faculty coordinator of this club can delete this event' });
+    }
+
+    // Remove event from club's events array
+    await Club.findByIdAndUpdate(event.club._id, { $pull: { events: id } });
+
+    // Delete the event
+    await Event.findByIdAndDelete(id);
+    
     res.status(200).json({ message: 'Event deleted successfully' });
   } catch (err) {
+    console.error('Error deleting event:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -410,8 +457,27 @@ export const getUpcomingEvents = async (req, res) => {
 // Deactivate event (soft delete)
 export const deactivateEvent = async (req, res) => {
   try {
+    const { id } = req.params;
+    const currentUser = req.user; // From auth middleware
+
+    // Ensure only faculty can deactivate events
+    if (currentUser.role !== "faculty") {
+      return res.status(403).json({ error: 'Only faculty members can deactivate events' });
+    }
+
+    // Find the event and populate the club information
+    const existingEvent = await Event.findById(id).populate('club');
+    if (!existingEvent) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    // Check if the faculty user is the coordinator of the club that owns this event
+    if (!existingEvent.club.facultyCoordinator.equals(currentUser._id)) {
+      return res.status(403).json({ error: 'Only the faculty coordinator of this club can deactivate this event' });
+    }
+
     const event = await Event.findByIdAndUpdate(
-      req.params.id,
+      id,
       { isActive: false },
       { new: true }
     ).populate('club', 'name category')
@@ -426,6 +492,7 @@ export const deactivateEvent = async (req, res) => {
       event 
     });
   } catch (err) {
+    console.error('Error deactivating event:', err);
     res.status(500).json({ error: err.message });
   }
 };

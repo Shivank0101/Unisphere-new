@@ -123,7 +123,7 @@ const AttendanceStats = () => {
     datasets: [
       {
         label: 'Events',
-        data: [attendanceData.totalRegisteredEvents, attendanceData.totalAttendanceMarked],
+        data: [attendanceData.totalRegisteredEvents, attendanceData.attendedEvents || attendanceData.breakdown.present + attendanceData.breakdown.late],
         backgroundColor: ['#3B82F6', '#10B981'],
         borderColor: ['#2563EB', '#059669'],
         borderWidth: 2,
@@ -178,6 +178,20 @@ const AttendanceStats = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Refresh Button */}
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-white">Attendance Statistics</h3>
+        <button
+          onClick={fetchAttendanceData}
+          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition flex items-center"
+        >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gray-900 rounded-xl border border-gray-700 p-6">
@@ -203,7 +217,7 @@ const AttendanceStats = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-400">Attended</p>
-              <p className="text-2xl font-bold text-white">{attendanceData.totalAttendanceMarked}</p>
+              <p className="text-2xl font-bold text-white">{attendanceData.attendedEvents || (attendanceData.breakdown.present + attendanceData.breakdown.late)}</p>
             </div>
           </div>
         </div>
