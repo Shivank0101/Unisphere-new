@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
-    <div className="min-h-screen  bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white flex flex-col items-center justify-center px-6 pt-0 mt-0 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white flex flex-col items-center justify-center px-6 pt-0 mt-0 text-center">
       
+      {/* Welcome Section */}
       <h1 className="text-5xl font-extrabold text-white mb-6 drop-shadow-md">
         🎓 Welcome to <span className="text-purple-400 drop-shadow-[0_0_8px_#a855f7]">Unisphere</span>
       </h1>
@@ -29,10 +30,10 @@ const Home = () => {
         </a>
       </div>
 
-      {/* Features Section */}
-      <div id="features" className="mt-20 max-w-4xl w-full">
+      {/* Centered Features Section */}
+      <div id="features" className="mt-20 max-w-4xl w-full flex flex-col items-center text-center">
         <h2 className="text-3xl font-bold mb-6 text-white drop-shadow-md">🔍 Key Features</h2>
-        <ul className="text-left text-slate-300 space-y-4 text-lg">
+        <ul className="text-slate-300 space-y-4 text-lg text-center">
           <li>📅 Browse and register for campus events & workshops</li>
           <li>🧑‍🏫 Faculty can create, edit, and manage events for clubs</li>
           <li>📲 Smart reminders & notifications for upcoming events</li>

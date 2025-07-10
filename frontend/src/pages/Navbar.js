@@ -19,7 +19,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white/5 backdrop-blur-md border-b border-white/10 shadow-md text-white m-0 " >
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-y-4">
         {/* Logo */}
         <Link to="/" className="flex items-center">
           <span className="text-3xl font-orbitron font-extrabold bg-gradient-to-r from-yellow-400 via-orange-300 to-yellow-100 bg-clip-text text-transparent drop-shadow-[0_0_6px_#fbbf24]">
@@ -28,7 +28,8 @@ const Navbar = () => {
         </Link>
 
         {/* Right Menu */}
-        <div className="flex items-center space-x-6">
+        <div className="flex flex-wrap gap-4 justify-end items-center text-sm sm:text-base">
+
           <Link
             to="/"
             className="transition duration-300 hover:text-blue-400 hover:drop-shadow-[0_0_6px_rgba(34,197,94,0.8)]"

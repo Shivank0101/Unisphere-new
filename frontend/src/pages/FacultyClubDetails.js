@@ -252,7 +252,7 @@ const FacultyClubDetails = () => {
         {club.members.map((member) => (
           <div
             key={member._id}
-            className="flex justify-between items-center bg-white/5 backdrop-blur-md p-3 rounded-lg border border-purple-400  shadow-purple-400/40  hover:scale-[1.03] transition-all duration-300"
+             className="flex flex-wrap justify-between items-start sm:items-center gap-3 bg-white/5 backdrop-blur-md p-3 rounded-lg border border-purple-400 shadow-purple-400/40 hover:scale-[1.03] transition-all duration-300"
           >
             <div>
               <p className="font-medium text-white">
@@ -267,7 +267,7 @@ const FacultyClubDetails = () => {
             {member._id !== club.facultyCoordinator?._id && (
               <button
                 onClick={() => handleRemoveMember(member._id)}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded shadow-sm"
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded shadow-sm text-sm sm:text-base w-auto sm:w-fit whitespace-nowrap"
               >
                 Remove
               </button>

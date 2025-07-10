@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 // Base URL - Change this to switch between development and production
-const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
-//  const BASE_URL = "http://localhost:5001"; // Development
+// const BASE_URL = "https://unisphere-backend-o6o2.onrender.com"; // Production
+ const BASE_URL = "http://localhost:5001"; // Development
 
 const CreateClub = () => {
   const [name, setName] = useState('');
@@ -243,9 +243,6 @@ const CreateClub = () => {
                 className="w-full text-gray-800 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 placeholder="https://example.com/club-image.jpg"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                💡 Tip: Use image hosting services like Imgur, Cloudinary, or direct URLs to publicly accessible images
-              </p>
             </div>
           )}
           
@@ -259,7 +256,7 @@ const CreateClub = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
               />
               <p className="text-xs text-gray-500 mt-1">
-                💡 Tip: Upload images directly from your device (JPEG, PNG, GIF, WebP - max 5MB)
+                 Tip: Upload images directly from your device (JPEG, PNG, GIF, WebP - max 5MB)
               </p>
               {selectedFile && (
                 <p className="text-xs text-green-600 mt-1">
@@ -318,12 +315,22 @@ const CreateClub = () => {
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300"
-        >
-          ✅ Create Club
-        </button>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+  <button
+    type="submit"
+    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-md transition duration-300"
+  >
+    ✅ Create Club
+  </button>
+  <button
+    type="button"
+    onClick={() => navigate("/faculty/dashboard")}
+    className="w-full sm:w-auto bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-6 rounded-md transition duration-300"
+  >
+    ❌ Cancel
+  </button>
+</div>
+
 
         {error && <p className="text-red-600 text-center">{error}</p>}
         {success && <p className="text-green-600 text-center">{success}</p>}
