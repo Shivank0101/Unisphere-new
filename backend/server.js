@@ -16,14 +16,33 @@ dotenv.config();
 const app = express();
 
 // Middlewares
+// app.use(cors({
+//     origin: "https://unisphere-frontend.onrender.com",
+//   //   origin: [
+//   //   "http://localhost:3000",                     // for local dev
+//   //   "https://unisphere-frontend.onrender.com",    // ✅ your deployed frontend
+//   // ],
+//     credentials: true
+// }));
+
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://unisphere-frontend.onrender.com"
+];
+
 app.use(cors({
-    origin: "https://unisphere-frontend.onrender.com",
-  //   origin: [
-  //   "http://localhost:3000",                     // for local dev
-  //   "https://unisphere-frontend.onrender.com",    // ✅ your deployed frontend
-  // ],
-    credentials: true
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
+
+
 
 // ✅ This line handles preflight requests
 app.options("*", cors());
