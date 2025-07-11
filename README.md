@@ -55,6 +55,4 @@ git clone https://github.com/ShivankShukla/Unisphere-new
 cd Unisphere-new
 npm install
 
-🔗 License
-This project is licensed under the MIT License.
 
