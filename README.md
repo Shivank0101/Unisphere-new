@@ -1,4 +1,4 @@
-# 🎓 UNISPHERE-NEW
+# 🎓 UNISPHERE
 
 Empowering Seamless Campus Engagement and Innovation
 
