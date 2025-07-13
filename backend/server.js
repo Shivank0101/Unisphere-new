@@ -27,12 +27,43 @@ const app = express();
 
 
 // ✅ Define allowed origins
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   "https://unisphere-frontend.onrender.com"
+// ];
+
+// // ✅ Proper CORS middleware
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true
+// }));
+
+// // ✅ Handle preflight requests
+// app.options("*", cors({
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true
+// }));
+
+// Handles preflight requests manually (app.options("*")) to ensure CORS headers are sent every time
+
 const allowedOrigins = [
   "http://localhost:3000",
   "https://unisphere-frontend.onrender.com"
 ];
 
-// ✅ Proper CORS middleware
+// ✅ Main CORS setup
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -41,20 +72,24 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// ✅ Handle preflight requests
-app.options("*", cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
+// ✅ Preflight: respond manually
+app.options("*", (req, res) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    return res.sendStatus(200);
+  } else {
+    return res.status(403).send("CORS Forbidden");
+  }
+});
 
 
 
