@@ -66,6 +66,7 @@ const allowedOrigins = [
 // ✅ Main CORS setup
 app.use(cors({
   origin: function (origin, callback) {
+    console.log("Request from origin:", origin); // ✅ log for debug
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -73,23 +74,21 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 // ✅ Preflight: respond manually
-app.options("*", (req, res) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
-    return res.sendStatus(200);
-  } else {
-    return res.status(403).send("CORS Forbidden");
-  }
-});
+// app.options("*", (req, res) => {
+//   const origin = req.headers.origin;
+//   if (allowedOrigins.includes(origin)) {
+//     res.setHeader("Access-Control-Allow-Origin", origin);
+//     res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
+//     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//     res.setHeader("Access-Control-Allow-Credentials", "true");
+//     return res.sendStatus(200);
+//   } else {
+//     return res.status(403).send("CORS Forbidden");
+//   }
+// });
 
 
 
