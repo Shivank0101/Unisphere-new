@@ -1,11 +1,6 @@
-# 🎓 UNISPHERE-NEW
+# 🎓 UNISPHERE
 
 Empowering Seamless Campus Engagement and Innovation
-
-![GitHub top language](https://img.shields.io/github/languages/top/ShivankShukla/Unisphere-new)
-![GitHub language count](https://img.shields.io/github/languages/count/ShivankShukla/Unisphere-new)
-![GitHub repo size](https://img.shields.io/github/repo-size/ShivankShukla/Unisphere-new)
-![Last Commit](https://img.shields.io/github/last-commit/ShivankShukla/Unisphere-new)
 
 Built with:
 
