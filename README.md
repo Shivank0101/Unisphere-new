@@ -23,7 +23,7 @@ Built with:
 
 ## 📘 Overview
 
-Unisphere-new is a campus event and club management platform designed to help universities streamline event creation, registration, attendance tracking, and student engagement. It features role-based dashboards, real-time notifications, and cloud-based media uploads.
+Unisphere-new is a campus event and club management platform designed to help universities streamline event creation, registration, attendance tracking, and student engagement. It features role-based dashboards for student and teacher, real-time notifications, and cloud-based media uploads.
 
 ---
 
